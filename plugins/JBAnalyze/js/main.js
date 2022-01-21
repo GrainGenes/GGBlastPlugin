@@ -29,18 +29,18 @@ define([
        ) {
 return declare( JBrowsePlugin,
 {
-    pre: 0,
+    //pre: 0,
     constructor: function( args ) {
         console.log("plugin: JBAnalyze ",args);
         
         var thisB = this;
         var browser = this.browser;
 
-        this.pre = this.browser.config.JBConnect.pre;
-        if (!this.pre) {
-            console.log("JBAnalyze failed - JBConnect.pre not defined is jbrowse_conf.json");
-            return;
-        }
+        // this.pre = this.browser.config.JBConnect.pre;
+        // if (!this.pre) {
+        //     console.log("JBAnalyze failed - JBConnect.pre not defined is jbrowse_conf.json");
+        //     return;
+        // }
 
         browser.jbconnect = {
             asset: null,
@@ -49,7 +49,7 @@ return declare( JBrowsePlugin,
             focusQueueProc: 0,
             panelDelayTimer: null,
             bpSizeLimit: browser.config.bpSizeLimit || 0,
-            getWorkflows: this.getWorkflows,
+            //getWorkflows: this.getWorkflows,
             countSequence: thisB.countSequence,
             analyzeMenus: {},
 
@@ -102,7 +102,7 @@ return declare( JBrowsePlugin,
                 else
                     analyzeMenus[i].init(menuName,queryDialog);
             }
-
+/*
             browser.addGlobalMenuItem( menuName, new dijitMenuItem({
                 id: 'menubar_analyze_dbclean',
                 label: 'Reset Analysis Results',
@@ -150,12 +150,13 @@ return declare( JBrowsePlugin,
                 
                 }
             }));
-
+*/
             browser.renderGlobalMenu( menuName,'AnalyzeTools', browser.menuBar );
 
             // reorder the menubar
             $("[widgetid*='dropdownbutton_analyze']").insertBefore("[widgetid*='dropdownbutton_help']");
-            $("[widgetid*='dropdownbutton_analyze'] span.dijitButtonNode").html(" Analyze");
+            //$("[widgetid*='dropdownbutton_analyze'] span.dijitButtonNode").html(" Analyze");
+            $("[widgetid*='dropdownbutton_analyze'] span.dijitButtonNode").html(" BLAST");
 
         });
     },

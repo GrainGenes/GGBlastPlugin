@@ -16,7 +16,7 @@ define([
    ) {
 return declare( JBrowsePlugin,
 {
-pre: 0,
+//pre: 0,
 constructor: function( args ) {
     let thisB = this;
     let browser = this.browser;
@@ -25,12 +25,12 @@ constructor: function( args ) {
 
     console.log("plugin: JBClient");
 
-    this.pre = this.browser.config.JBConnect.pre;
-    if (!this.pre) {
-        console.log("JBClient failed - JBConnect.pre not defined is jbrowse_conf.json");
-        return;
-    }
-    console.log('JBConnect.pre', this.pre);
+    //this.pre = this.browser.config.JBConnect.pre;
+    //if (!this.pre) {
+    //    console.log("JBClient failed - JBConnect.pre not defined is jbrowse_conf.json");
+    //    return;
+    //}
+    //console.log('JBConnect.pre', this.pre);
     
     //var io = sailsIOClient(socketIOClient);
     //io.sails.url = 'http:/example.com';
@@ -121,6 +121,7 @@ constructor: function( args ) {
         });
     });
     */
+    /*
     browser.afterMilestone( 'initView', function() {
         // inject the actual login/logou redirect
 //        $('#form-login').attr('action','/auth/local?next='+thisB.browser.makeCurrentViewURL());
@@ -133,9 +134,10 @@ constructor: function( args ) {
 //        thisB.decorateLogin();
 
     });
-
+    */
     function startMonitor() {
 
+        /*
         setInterval(function(){
             $.get(thisB.pre+'/jobactive/checkchanges?get', function(changes) {
                 if (changes.jobChanges.length) {
@@ -165,7 +167,7 @@ constructor: function( args ) {
                 }
             });
         },5000)
-
+        */
         // new track event handlers
         /*
         io.socket.on('track', function(event){
@@ -257,6 +259,7 @@ setupJobPanel: function() {
         },
         onExtClose:function(){}
     });
+
     setTimeout(function(){
         $('.extruder-container').css('height','350px');     // for some reason, we must do this, why?
     },3000);

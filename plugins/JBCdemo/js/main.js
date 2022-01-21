@@ -20,7 +20,7 @@ define([
    ) {
 return declare( JBrowsePlugin,
 {
-    pre: 0,
+    //pre: 0,
     
     constructor: function( args ) {
         console.log("plugin: JBCdemo",args,"login",this.browser.loginState);
@@ -28,31 +28,32 @@ return declare( JBrowsePlugin,
         var thisb = this;
         var browser = this.browser;
 
-        this.pre = this.browser.config.JBConnect.pre;
-        if (!this.pre) {
-            console.log("JBClient failed - JBConnect.pre not defined is jbrowse_conf.json");
-            return;
-        }
+        // this.pre = this.browser.config.JBConnect.pre;
+        // if (!this.pre) {
+        //     console.log("JBClient failed - JBConnect.pre not defined is jbrowse_conf.json");
+        //     return;
+        // }
         
         // analyze menu structure
         browser.jbconnect.analyzeMenus.demo = {
-            title: 'Demo Analysis',
+            title: 'Submit to ggBlast',
+            //title: 'Demo Analysis',
             module: 'demo',
             init:initMenu,
             contents:dialogContent,
             process:processInput
         };
 
-        browser.jbconnect.getWorkflows(function(workflows){
-            browser.jbconnect.analyzeMenus.demo.workflows = workflows;
-            thisb.workflows = workflows;
-        }, 'demo');
+        // browser.jbconnect.getWorkflows(function(workflows){
+        //     browser.jbconnect.analyzeMenus.demo.workflows = workflows;
+        //     thisb.workflows = workflows;
+        // }, 'demo');
 
         // initMenu sets up Analyze Menu item(s)
         function initMenu(menuName,queryDialog,container) {
             browser.addGlobalMenuItem( menuName, new MenuItem({
                 id: 'menubar_submit_demo',
-                label: 'Demo Job - Submit Highlighted Region',
+                label: 'BLAST highlighted region',
                 //iconClass: 'dijitIconFilter',
                 onClick: function() {
 
@@ -112,7 +113,7 @@ return declare( JBrowsePlugin,
                     var dialog = new queryDialog({
                         browser:thisb.browser,
                         plugin:thisb.plugin,
-                        workflows:thisb.workflows
+                        //workflows:thisb.workflows
                     });
                     dialog.analyzeMenu = browser.jbconnect.analyzeMenus.demo; 
                     dialog.show(function(x) {});
@@ -123,19 +124,19 @@ return declare( JBrowsePlugin,
         function dialogContent(container) {
             //Render textarea box
 
-            var searchBoxDiv = dom.create('div', {
-                className: "section",
-                innerHTML:
-                    '<div class="s-params">'
-                    +'    Add CUSTOM_DATA= attribute to all features in the demo result.<br/>'
-                    +'    <input class="s-data" type="text" name="CUSTOM_DATA">'
-                    +'</div>'
-            }, container );
+            // var searchBoxDiv = dom.create('div', {
+            //     className: "section",
+            //     innerHTML:
+            //         '<div class="s-params">'
+            //         +'    Add CUSTOM_DATA= attribute to all features in the demo result.<br/>'
+            //         +'    <input class="s-data" type="text" name="CUSTOM_DATA">'
+            //         +'</div>'
+            // }, container );
 
-            // setup default values for fields
-            setTimeout(function() {
-                $('.s-data[name=CUSTOM_DATA]').val('hello world');
-            },200);
+            // // setup default values for fields
+            // setTimeout(function() {
+            //     $('.s-data[name=CUSTOM_DATA]').val('hello world');
+            // },200);
         }
 
         // after Submit button is pressed, this processes input from the dialog prior to submitting the job.

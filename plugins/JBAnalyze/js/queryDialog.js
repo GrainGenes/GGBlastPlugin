@@ -31,18 +31,18 @@ function(
 
 return declare( ActionBarDialog, {
 
-pre: 0,
+//pre: 0,
 constructor: function(args) {
     this.plugin = args.plugin;
     this.browser = args.browser;
     this.workflows = args.workflows;
     var thisB = this;
 
-    this.pre = this.browser.config.JBConnect.pre;
-    if (!this.pre) {
-        console.log("JBAnalyze failed - JBConnect.pre not defined is jbrowse_conf.json");
-        return;
-    }
+    // this.pre = this.browser.config.JBConnect.pre;
+    // if (!this.pre) {
+    //     console.log("JBAnalyze failed - JBConnect.pre not defined is jbrowse_conf.json");
+    //     return;
+    // }
 
     aspect.after( this, 'hide', function() {
           focus.curNode && focus.curNode.blur();
@@ -62,26 +62,27 @@ _dialogContent: function () {
     }
     let container = dom.create('div', { className: 'search-dialog' } );
 
-    let workflowCombo = dom.create('div', {
-        id: 'workflow-div',
-        className: 'section',
-        innerHTML:
-            '<span classs="header">Select Workflow</span><br />'+ 
-            '<select id="workflow-combo" name="workflow">'+wfStr+'</select>'
+    // let workflowCombo = dom.create('div', {
+    //     id: 'workflow-div',
+    //     className: 'section',
+    //     innerHTML:
+    //         '<span classs="header">Select Workflow</span><br />'+ 
+    //         '<select id="workflow-combo" name="workflow">'+wfStr+'</select>'
 
-    },container);
+    // },container);
 
     if (this.analyzeMenu && this.analyzeMenu.contents)
         this.analyzeMenu.contents(container);
 
+    $('#workflow-div').hide();    
     // hide workflow selectr if only one entry.
-    setTimeout(function() {
-        if (workflows.length===1)  $('#workflow-div').hide();
-        if (workflows.length===0) {
-            $('span[widgetid=analyze-submit]')
-            alert("no workflows detected");
-        }
-    },200);
+    // setTimeout(function() {
+    //     if (workflows.length===1)  $('#workflow-div').hide();
+    //     if (workflows.length===0) {
+    //         $('span[widgetid=analyze-submit]')
+    //         alert("no workflows detected");
+    //     }
+    // },200);
 
 
     return container;
@@ -123,7 +124,11 @@ _fillActionBar: function ( actionBar ) {
                     postData.dataset = browser.config.dataRoot;
                     postData.workflow = searchParams.workflow;
 
-                    thisB.postSubmit(postData);
+                    console.log("submit",postData);
+                    localStorage.setItem('blastDNA',postData.region);
+
+                    window.open('https://graingenes.org/blast','_newtab');
+                    //thisB.postSubmit(postData);
                 });
             }
             else 

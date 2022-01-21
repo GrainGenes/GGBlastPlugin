@@ -15,7 +15,7 @@ define(function(){
         jobs: {},
         callback: {},
 
-        pre: 0,
+        //pre: 0,
         /*
          * register callback for job panel
          */
@@ -33,11 +33,11 @@ define(function(){
                 browser.jbconnect = {};
             browser.jbconnect.queue = this;
 
-            this.pre = browser.config.JBConnect.pre;
-            if (!this.pre) {
-                console.log("initQueue failed - JBConnect.pre not defined is jbrowse_conf.json");
-                return;
-            }
+            //this.pre = browser.config.JBConnect.pre;
+            //if (!this.pre) {
+            //    console.log("initQueue failed - JBConnect.pre not defined is jbrowse_conf.json");
+            //    return;
+            //}
     
             // subscribe to all job objects including new
             // x io.socket.get(this.pre+'/job', function(resData, jwres) {console.log(resData);});
