@@ -329,12 +329,17 @@ function(
                 title: 'BLAST this feature',
                 disabled: false, //$('.save-generated-files'),
                 onClick: function() {
+                    //console.log("dna button this",this)
+                    //console.log($(".dijitButton[widgetid='"+this.id+"']"));
+                    let btn = $(".dijitButton[widgetid='"+this.id+"']").parent().parent();
+                    //console.log($('textarea.fasta',btn).html())
                     // check if query size too big
                     //if (JBrowse.jblast.isOversized(bpSize)) return;
                     //JBrowse.jblastDialog(text,bpSize);
+                    let rdata = $('textarea.fasta',btn).text();
                     let data = {
                         bpSize: bpSize,
-                        region: region,
+                        region: rdata,
                     }
                     JBrowse.jbconnect.sendTo(data);
                 }
