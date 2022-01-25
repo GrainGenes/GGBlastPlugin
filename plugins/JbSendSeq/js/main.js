@@ -22,20 +22,29 @@ function(
 ) {
     return declare( JBrowsePlugin,
     {
-        sendTo: function(region) {
+        sendTo: function(dnaRegion) {
+
+            // dna comes from selected feature
+            if (dnaRegion) {
+                return sendIt(dnaRegion);
+            }
 
             JBrowse.jbconnect.processInput((postData) => {
-                
-                console.log("Sending to BLAST",postData);
                 
                 if (postData.err) {
                     alert(postData.err);
                     return;
                 }
 
-                localStorage.setItem('blastDNA',postData.region);
-                window.open('https://graingenes.org/blast','_newtab');
+                sendIt(postData);
             });
+
+            function sendIt(data) {
+                console.log("Sending to BLAST",data);
+                
+                localStorage.setItem('blastDNA',data.region);
+                window.open('https://graingenes.org/blast','_newtab');
+            }
         },
 
         constructor: function( args ) {
@@ -154,93 +163,37 @@ function(
                         thisB.sendTo();
                         return;
 
-                        let btnState = $("[widgetid*='highlight-btn'] > input").attr('aria-checked');
-                        console.log("btnState",btnState,typeof btnState);
-                        if (btnState==='mixed') {
-                            // launch blast dialog
-                            console.log("launch demo dialog");
-                            startSampleDialog();
-    
-                        }
-                        if (btnState==='false' || btnState==='true') {
-                            // false - highlight button hasn't been pressed
-                            // true - highlight button has been pressed but region not selected yet.
-    
-                            let txt = "";
-                            txt += 'This feature allows you to select an arbitrary region to submit for analysis using the highlight region feature of JBrowse. <p/>';
-                            
-                            if (btnState==='false') {
-                                txt += 'To begin, click the highlight button <img src="plugins/JBAnalyze/img/hilite_unselected.PNG" height="22px" /> on the toolbar to begin the highlight mode. ';
-                            }
-                            if (btnState==='true') {
-                                txt += 'You have selected the highlight button, which now appears yellow <img src="plugins/JBAnalyze/img/hilite_selected.PNG" height="22px" />. ';
-                            }
-                            txt += 'Highlight the region by clicking the start coordinate in the track area of the genome browser, ';
-                            txt += 'holding down and dragging to the end coordinate and releasing. ';
-    
-                            // show highlight instruct box
-                            var confirmBox = new Dialog({ title: 'Highlight region to submit for analysis' });
-                            dojo.create('div', {
-                                id: 'confirm-btn',
-                                style: "width: 700px;padding:15px",
-                                innerHTML: txt
-            
-                            }, confirmBox.containerNode );
-                            new Button({
-                                id: 'ok-btn1',
-                                label: 'Ok',
-                                //iconClass: 'dijitIconDelete',
-                                onClick: function() {
-                                    confirmBox.destroyRecursive();
-                                    //confirmCleanBox.hide();
-                                }
-                            })
-                            .placeAt( confirmBox.containerNode );
-    
-                            confirmBox.show();
-    
-                        }
                     }
                 }));
                 function startSampleDialog() {
                                         
-                        var dialog = new queryDialog({
-                            browser:thisB.browser,
-                            plugin:thisB.plugin,
-                            //workflows:thisb.workflows
-                        });
-                        dialog.analyzeMenu = browser.jbconnect.analyzeMenus.demo; 
-                        dialog.show(function(x) {});
+                    var dialog = new queryDialog({
+                        browser:thisB.browser,
+                        plugin:thisB.plugin,
+                        //workflows:thisb.workflows
+                    });
+                    dialog.analyzeMenu = browser.jbconnect.analyzeMenus.demo; 
+                    dialog.show(function(x) {});
                 } 
                          
             }
-            
-
 
             // setup content of submit dialog box
             
             function dialogContent(container) {
-                //Render textarea box
-    
-                // var searchBoxDiv = dom.create('div', {
-                //     className: "section",
-                //     innerHTML:
-                //         '<div class="s-params">'
-                //         +'    Add CUSTOM_DATA= attribute to all features in the demo result.<br/>'
-                //         +'    <input class="s-data" type="text" name="CUSTOM_DATA">'
-                //         +'</div>'
-                // }, container );
-    
-                // // setup default values for fields
-                // setTimeout(function() {
-                //     $('.s-data[name=CUSTOM_DATA]').val('hello world');
-                // },200);
             }
             
             // after Submit button is pressed, this processes input from the dialog prior to submitting the job.
             function processInput(cb) {
                 console.log ('JBCdemo processInput',browser);
-    
+
+                if (!browser._highlight) {
+                    console.log('no highlight region');
+                    return cb({
+                        err: "_no highlight region"
+                    });
+                }
+
                 // check if bpSize is oversized
                 let bpSize = browser._highlight.end - browser._highlight.start;
                 if (browser.jbconnect.isOversized(bpSize))  return {err: "oversized"};
@@ -286,8 +239,7 @@ function(
                 'dojo/dom-construct',
                 'dijit/MenuItem',
                 'dijit/Dialog',
-                'dijit/form/Button',
-                'plugins/JbSendSeq/js/queryDialog'
+                'dijit/form/Button'
             ], function(dom,dijitMenuItem,Dialog,dButton,queryDialog){
                 
                 let analyzeMenus = browser.jbconnect.analyzeMenus;
@@ -380,7 +332,11 @@ function(
                     // check if query size too big
                     //if (JBrowse.jblast.isOversized(bpSize)) return;
                     //JBrowse.jblastDialog(text,bpSize);
-                    JBrowse.jbconnect.sendTo();
+                    let data = {
+                        bpSize: bpSize,
+                        region: region,
+                    }
+                    JBrowse.jbconnect.sendTo(data);
                 }
             }));
         },
