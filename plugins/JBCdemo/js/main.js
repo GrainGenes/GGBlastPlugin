@@ -57,6 +57,11 @@ return declare( JBrowsePlugin,
                 //iconClass: 'dijitIconFilter',
                 onClick: function() {
 
+                    if (!browser._highlight) {
+                        alert("no highlight region");
+                        return;
+                    }
+
                     let bpSize = browser._highlight.end - browser._highlight.start;
                     if (browser.jbconnect.isOversized(bpSize))  return;
 

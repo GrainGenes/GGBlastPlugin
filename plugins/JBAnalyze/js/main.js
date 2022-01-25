@@ -50,7 +50,7 @@ return declare( JBrowsePlugin,
             panelDelayTimer: null,
             bpSizeLimit: browser.config.bpSizeLimit || 0,
             //getWorkflows: this.getWorkflows,
-            countSequence: thisB.countSequence,
+            //countSequence: thisB.countSequence,
             analyzeMenus: {},
 
             // check if bpSize > bpSizeLimit, if bpSizeLimit is defined
@@ -165,6 +165,7 @@ return declare( JBrowsePlugin,
      * @param {type} cb - cb(workflows]]
      * @returns {getWorkflows}
      */
+    /*
     getWorkflows(cb,servModule) {
         let browser = this.browser;
         pre = browser.config.JBConnect.pre;
@@ -177,6 +178,8 @@ return declare( JBrowsePlugin,
             alert('get_workflows failed',textStatus);
         });;
     },
+    */
+   /*
     countSequence(seq) {
         let lines = seq.split("\n");
         let count = 0;
@@ -190,7 +193,7 @@ return declare( JBrowsePlugin,
     
         return count;
     }
-
+*/
 });
 });
 
