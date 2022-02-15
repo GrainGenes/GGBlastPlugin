@@ -41,8 +41,21 @@ function(
 
             function sendIt(data) {
                 console.log("Sending to BLAST",data);
-                
+
+                // insert database name
+                let r = data.region.split('\n');
+                let db = JBrowse.config.dataRoot.split('/');
+                db = db[db.length-1];
+                r[0] += " GrainGenes="+db;
+                data.region = r.join('\n');
+
                 localStorage.setItem('blastDNA',data.region);
+                
+                if (JBrowse.config.blastDatabase) {
+                    console.log("select BLAST database",JBrowse.config.blastDatabase);
+                    localStorage.setItem('blastDatabaseSelect',JBrowse.config.blastDatabase);
+                }
+
                 window.open('https://graingenes.org/blast','_newtab');
             }
         },
@@ -135,8 +148,6 @@ function(
             
             // insert dropdown menu
             browser.afterMilestone( 'initView', function() {    
-                console.log(">>>>> Setup Menu");
-
                 let menuName = "analyze"; 
                 browser.renderGlobalMenu( menuName,'AnalyzeTools', browser.menuBar );
                 
@@ -149,7 +160,7 @@ function(
                 browser.addGlobalMenuItem( menuName, new MenuItem({
                     id: 'menubar_submit_demo',
                     label: 'BLAST highlighted region',
-                    //iconClass: 'dijitIconFilter',
+                    iconClass: 'dijitIconFilter',
                     onClick: function() {
     
                         if (!browser._highlight) {
@@ -170,7 +181,6 @@ function(
                     var dialog = new queryDialog({
                         browser:thisB.browser,
                         plugin:thisB.plugin,
-                        //workflows:thisb.workflows
                     });
                     dialog.analyzeMenu = browser.jbconnect.analyzeMenus.demo; 
                     dialog.show(function(x) {});
@@ -179,16 +189,12 @@ function(
             }
 
             // setup content of submit dialog box
-            
             function dialogContent(container) {
             }
             
             // after Submit button is pressed, this processes input from the dialog prior to submitting the job.
             function processInput(cb) {
-                console.log ('JBCdemo processInput',browser);
-
                 if (!browser._highlight) {
-                    console.log('no highlight region');
                     return cb({
                         err: "_no highlight region"
                     });
@@ -201,7 +207,7 @@ function(
                 // get parameter list
                 let params = {}; 
                 $( ".s-params .s-data" ).each(function( i ) {
-                    console.log( $(this).attr('name')+ ": " + $( this ).val() );
+                    //console.log( $(this).attr('name')+ ": " + $( this ).val() );
                     params[$(this).attr('name')] = $( this ).val();
                 });            
                 
@@ -244,11 +250,7 @@ function(
                 
                 let analyzeMenus = browser.jbconnect.analyzeMenus;
     
-                console.log("JBAnalyze toolmenu init",analyzeMenus);//Object.keys(analyzeMenus).length);
-                
-
                 for(let i in analyzeMenus) {
-                    console.log("Analyze menu",i);
                     if (analyzeMenus[i].queryDialog) 
                         analyzeMenus[i].init(menuName,analyzeMenus[i].queryDialog)
                     else
@@ -267,7 +269,6 @@ function(
          *
          */
         jblastRightClickMenuInit: function(highlight) {
-            //console.log("jblastRightClickMenuInit");
             //var thisB = this;
             var browser = this.browser;
             var handlers = {
@@ -299,7 +300,7 @@ function(
          * @returns nothing significant
          */
         BlockBased_postRenderHighlight: function(node) {
-            console.log('postRenderHighlight');
+            //console.log('postRenderHighlight');
             
             // add hilight menu to node
             if (typeof JBrowse.jblastHiliteMenu !== 'undefined') {
@@ -319,8 +320,6 @@ function(
         // adds Blast button in feature DNA in details dialogbox
         FASTA_addButtons: function (region,seq, toolbar) {
             let text = this.renderText( region, seq );
-            //console.log("addButtons region, size",region,region.end-region.start,text);
-            //let thisB = this;
             let bpSize = region.end-region.start;
             
             toolbar.addChild( new Button({ 
@@ -329,13 +328,7 @@ function(
                 title: 'BLAST this feature',
                 disabled: false, //$('.save-generated-files'),
                 onClick: function() {
-                    //console.log("dna button this",this)
-                    //console.log($(".dijitButton[widgetid='"+this.id+"']"));
                     let btn = $(".dijitButton[widgetid='"+this.id+"']").parent().parent();
-                    //console.log($('textarea.fasta',btn).html())
-                    // check if query size too big
-                    //if (JBrowse.jblast.isOversized(bpSize)) return;
-                    //JBrowse.jblastDialog(text,bpSize);
                     let rdata = $('textarea.fasta',btn).text();
                     let data = {
                         bpSize: bpSize,
