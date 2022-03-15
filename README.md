@@ -1,1 +1,1 @@
-# jbsendseq-plugin
+# LinkOutSeq JBrowse Plugin
