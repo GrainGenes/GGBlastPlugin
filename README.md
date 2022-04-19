@@ -3,7 +3,7 @@ Provides options to select and link out a sequence to another web-app, like ggbl
 Currently customized to link to ggblast
 
 # configure auto select database for linkout
-In trackList.json:
+In JBrowse trackList.json:
 ```
 "blastDatabase": <ggblast database name>
 
