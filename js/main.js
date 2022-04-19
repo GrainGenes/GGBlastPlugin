@@ -56,7 +56,7 @@ function(
                     localStorage.setItem('blastDatabaseSelect',JBrowse.config.blastDatabase);
                 }
 
-                window.open('https://graingenes.org/blast','_newtab');
+                window.open('/blast','_newtab');
             }
         },
 
