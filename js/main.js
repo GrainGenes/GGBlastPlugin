@@ -64,7 +64,7 @@ function(
             let thisB = this;
             let browser = this.browser;
 
-            console.log("plugin: JbSendSeq");
+            console.log("plugin: SequenceLinkOut",args);
 
             browser.jbconnect = {
                 asset: null,
