@@ -49,14 +49,64 @@ function(
                 r[0] += " GrainGenes="+db;
                 data.region = r.join('\n');
 
-                localStorage.setItem('blastDNA',data.region);
-                
-                if (JBrowse.config.blastDatabase) {
-                    console.log("select BLAST database",JBrowse.config.blastDatabase);
-                    localStorage.setItem('blastDatabaseSelect',JBrowse.config.blastDatabase);
+                if (!JBrowse.config.blastDatabase) {
+                    alert("blastDatabase not defined in trackList.json, cannot send to BLAST");
+                    return;
                 }
 
-                window.open('/blast','_newtab');
+                // Check if using PHP BLAST service
+                if (JBrowse.config.blastService === "php") {
+                    // Submit job via PHP API
+
+                    // Prepare POST data for submit_job.php
+                    const formData = new FormData();
+                    formData.append('blastexe', 'blastn'); // Default to blastn, could be made configurable
+                    formData.append('query', data.region);
+                    formData.append('database', JBrowse.config.blastDatabase);
+                    
+                    // Optional parameters from config
+                    if (JBrowse.config.blastEvalue) {
+                        formData.append('evalue', JBrowse.config.blastEvalue);
+                    }
+                    if (JBrowse.config.blastMaxHits) {
+                        formData.append('maxHits', JBrowse.config.blastMaxHits);
+                    }
+
+                    console.log("Submitting BLAST job via PHP API to database:", JBrowse.config.blastDatabase);
+
+                    // Submit the job
+                    fetch('plugins/SequenceLinkOut/blast/submit_job.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            console.log("BLAST job submitted:", result.jobId);
+                            
+                            // Open get_job page in new tab to check status and view results
+                            const getJobUrl = `plugins/SequenceLinkOut/blast/get_job.php?jobId=${result.jobId}`;
+                            window.open(getJobUrl, '_blank');
+                        } else {
+                            alert("BLAST job submission failed:\n" + (result.error || "Unknown error"));
+                            console.error("BLAST submission error:", result);
+                        }
+                    })
+                    .catch(error => {
+                        alert("Failed to submit BLAST job:\n" + error.message);
+                        console.error("BLAST submission error:", error);
+                    });
+                }
+                else {
+                    // Original behavior: store in localStorage and open BLAST page
+                    localStorage.setItem('blastDNA',data.region);
+                
+                    console.log("select BLAST database",JBrowse.config.blastDatabase);
+                    localStorage.setItem('blastDatabaseSelect',JBrowse.config.blastDatabase);
+
+                    // send to BLAST page
+                    window.open('/blast','_newtab');
+                }
             }
         },
 
@@ -64,14 +114,13 @@ function(
             let thisB = this;
             let browser = this.browser;
 
-            console.log("plugin: JbSendSeq");
+            console.log("plugin: SequenceLinkOut");
 
             browser.jbconnect = {
                 asset: null,
                 browser: browser,
                 panelDelayTimer: null,
                 bpSizeLimit: browser.config.bpSizeLimit || 20000,
-                //countSequence: thisB.countSequence,
                 analyzeMenus: {},
                 sendTo: thisB.sendTo,
                 processInput: processInput,
@@ -109,7 +158,6 @@ function(
                     clearHighlight: function() {
                         if( this._highlight ) {
                             $("[widgetid='jblast-toolbtn']").hide();
-                            //domStyle.set(thisB.browser.jblast.blastButton, 'display', 'none');  // don't work, why?
                             delete this._highlight;
                             this.publish( '/jbrowse/v1/n/globalHighlightChanged', [] );
                         }
@@ -126,20 +174,21 @@ function(
                 id: "jblast-toolbtn",
 				label: "BLAST",
                 onClick: dojo.hitch( thisB, function(event) {
-					//thisB.startBlast();
                     thisB.sendTo();
                     dojo.stopEvent(event);
                 })
             }, dojo.create('button',{},navBox));   //thisB.browser.navBox));
 
             // setup right click menu for highlight region - for arbitrary region selection
-            thisB.jblastRightClickMenuInit();
-
-            // analyze menu structure
+            thisB.rightClickMenuInit();
             
+            // setup content of submit dialog box
+            function dialogContent(container) {
+            }
+
+            // BLAST menu structure
             browser.jbconnect.analyzeMenus.demo = {
                 title: 'Submit to ggBlast',
-                //title: 'Demo Analysis',
                 module: 'demo',
                 init:initMenu,
                 contents:dialogContent,
@@ -156,7 +205,7 @@ function(
 
             // initMenu sets up Analyze Menu item(s)
             
-            function initMenu(menuName,queryDialog,container) {
+            function initMenu(menuName) {
                 browser.addGlobalMenuItem( menuName, new MenuItem({
                     id: 'menubar_submit_demo',
                     label: 'BLAST highlighted region',
@@ -176,22 +225,8 @@ function(
 
                     }
                 }));
-                function startSampleDialog() {
-                                        
-                    var dialog = new queryDialog({
-                        browser:thisB.browser,
-                        plugin:thisB.plugin,
-                    });
-                    dialog.analyzeMenu = browser.jbconnect.analyzeMenus.demo; 
-                    dialog.show(function(x) {});
-                } 
-                         
             }
 
-            // setup content of submit dialog box
-            function dialogContent(container) {
-            }
-            
             // after Submit button is pressed, this processes input from the dialog prior to submitting the job.
             function processInput(cb) {
                 if (!browser._highlight) {
@@ -207,7 +242,6 @@ function(
                 // get parameter list
                 let params = {}; 
                 $( ".s-params .s-data" ).each(function( i ) {
-                    //console.log( $(this).attr('name')+ ": " + $( this ).val() );
                     params[$(this).attr('name')] = $( this ).val();
                 });            
                 
@@ -260,7 +294,6 @@ function(
                 
                 // reorder the menubar
                 $("[widgetid*='dropdownbutton_analyze']").insertBefore("[widgetid*='dropdownbutton_help']");
-                //$("[widgetid*='dropdownbutton_analyze'] span.dijitButtonNode").html(" Analyze");
                 $("[widgetid*='dropdownbutton_analyze'] span.dijitButtonNode").html(" BLAST");
     
             });
@@ -268,7 +301,7 @@ function(
         /*
          *
          */
-        jblastRightClickMenuInit: function(highlight) {
+        rightClickMenuInit: function(highlight) {
             //var thisB = this;
             var browser = this.browser;
             var handlers = {
@@ -306,7 +339,6 @@ function(
             if (typeof JBrowse.jblastHiliteMenu !== 'undefined') {
                 JBrowse.jblastHiliteMenu.bindDomNode(node);
                 $("[widgetid='jblast-toolbtn']").show();
-                //domStyle.set(thisB.browser.jblast.blastButton, 'display', 'inline'); // dont work, why??
 
                 // flash the BLAST button
                 $("[widgetid='jblast-toolbtn']")
