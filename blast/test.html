@@ -147,6 +147,7 @@
 <strong>Success!</strong>
 Job ID: ${data.jobId}
 Status: ${data.status}
+<br><br><strong>View Status:</strong> <a href="results.php?jobId=${data.jobId}" target="_blank">Open Results Page</a>
 ${resultsLink}
 
 Full Response:
@@ -205,9 +206,6 @@ ${error.message}
                         
                         if (status === 'completed') {
                             clearInterval(pollInterval);
-                            const resultsLink = data.job.resultsUrl ? 
-                                `<br><br><strong>Results:</strong> <a href="../${data.job.resultsUrl}" target="_blank">View BLAST Results</a>` : 
-                                '';
                             resultDiv.innerHTML = `
                                 <div class="result">
 <strong>Job Completed!</strong>
@@ -215,7 +213,7 @@ Job ID: ${data.job.jobId}
 Status: ${status}
 Created: ${data.job.created}
 Completed: ${data.job.completed || 'N/A'}
-${resultsLink}
+<br><br><strong>View Results:</strong> <a href="results.php?jobId=${data.job.jobId}" target="_blank">Open Results Page</a>
 
 Full Job Data:
 ${JSON.stringify(data.job, null, 2)}

@@ -29,7 +29,7 @@ function(
                 return sendIt(dnaRegion);
             }
 
-            JBrowse.jbconnect.processInput((postData) => {
+            JBrowse.ggblast_plugin.processInput((postData) => {
                 
                 if (postData.err) {
                     alert(postData.err);
@@ -81,12 +81,14 @@ function(
                     })
                     .then(response => response.json())
                     .then(result => {
+                        console.log("Full API response:", result);
                         if (result.success) {
                             console.log("BLAST job submitted:", result.jobId);
+                            console.log("Full BLAST command:", result.command);
                             
-                            // Open get_job page in new tab to check status and view results
-                            const getJobUrl = `plugins/SequenceLinkOut/blast/get_job.php?jobId=${result.jobId}`;
-                            window.open(getJobUrl, '_blank');
+                            // Open results page in new tab to check status and view results
+                            const resultsUrl = `plugins/SequenceLinkOut/blast/results.php?jobId=${result.jobId}`;
+                            window.open(resultsUrl, '_blank');
                         } else {
                             alert("BLAST job submission failed:\n" + (result.error || "Unknown error"));
                             console.error("BLAST submission error:", result);
@@ -116,7 +118,7 @@ function(
 
             console.log("plugin: SequenceLinkOut");
 
-            browser.jbconnect = {
+            browser.ggblast_plugin = {
                 asset: null,
                 browser: browser,
                 panelDelayTimer: null,
@@ -128,7 +130,7 @@ function(
                 // check if bpSize > bpSizeLimit, if bpSizeLimit is defined
                 isOversized(bpSize) {
                     console.log('checking size',bpSize,'/',bpSizeLimit);
-                    let bpSizeLimit = JBrowse.jbconnect.bpSizeLimit;
+                    let bpSizeLimit = JBrowse.ggblast_plugin.bpSizeLimit;
     
                     if (bpSizeLimit && bpSize > bpSizeLimit) {
                         // oversize message
@@ -168,7 +170,7 @@ function(
 
             // setup navbar blast button
             var navBox = dojo.byId("navbox");
-            thisB.browser.jbconnect.blastButton = new Button(
+            thisB.browser.ggblast_plugin.blastButton = new Button(
             {
                 title: "BLAST highlighted region",
                 id: "jblast-toolbtn",
@@ -187,7 +189,7 @@ function(
             }
 
             // BLAST menu structure
-            browser.jbconnect.analyzeMenus.demo = {
+            browser.ggblast_plugin.analyzeMenus.demo = {
                 title: 'Submit to ggBlast',
                 module: 'demo',
                 init:initMenu,
@@ -197,10 +199,21 @@ function(
             
             // insert dropdown menu
             browser.afterMilestone( 'initView', function() {    
-                let menuName = "analyze"; 
+                let menuName = "blast"; 
                 browser.renderGlobalMenu( menuName,'AnalyzeTools', browser.menuBar );
                 
                 thisB.initAnalyzeMenu();
+                initMenu(menuName);  // Add original BLAST highlighted region menu item
+                
+                // Add Jobs menu item
+                browser.addGlobalMenuItem( menuName, new MenuItem({
+                    id: 'menubar_blast_jobs',
+                    label: 'Jobs',
+                    iconClass: 'dijitIconFolderOpen',
+                    onClick: function() {
+                        window.open('plugins/SequenceLinkOut/blast/jobs.php', '_blank');
+                    }
+                }));
             });
 
             // initMenu sets up Analyze Menu item(s)
@@ -218,7 +231,7 @@ function(
                         }
     
                         let bpSize = browser._highlight.end - browser._highlight.start;
-                        if (browser.jbconnect.isOversized(bpSize))  return;
+                        if (browser.ggblast_plugin.isOversized(bpSize))  return;
     
                         thisB.sendTo();
                         return;
@@ -237,7 +250,7 @@ function(
 
                 // check if bpSize is oversized
                 let bpSize = browser._highlight.end - browser._highlight.start;
-                if (browser.jbconnect.isOversized(bpSize))  return {err: "oversized"};
+                if (browser.ggblast_plugin.isOversized(bpSize))  return {err: "oversized"};
     
                 // get parameter list
                 let params = {}; 
@@ -282,7 +295,7 @@ function(
                 'dijit/form/Button'
             ], function(dom,dijitMenuItem,Dialog,dButton,queryDialog){
                 
-                let analyzeMenus = browser.jbconnect.analyzeMenus;
+                let analyzeMenus = browser.ggblast_plugin.analyzeMenus;
     
                 for(let i in analyzeMenus) {
                     if (analyzeMenus[i].queryDialog) 
@@ -309,7 +322,7 @@ function(
                 onTaskItemClick: function(event) {
                     // get sequence store and ac
                     //thisB.startBlast();
-                    JBrowse.jbconnect.sendTo();
+                    JBrowse.ggblast_plugin.sendTo();
                 }
             };
             // create task menu as context menu for task nodes.
@@ -366,7 +379,7 @@ function(
                         bpSize: bpSize,
                         region: rdata,
                     }
-                    JBrowse.jbconnect.sendTo(data);
+                    JBrowse.ggblast_plugin.sendTo(data);
                 }
             }));
         },

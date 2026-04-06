@@ -14,6 +14,31 @@
 
 header('Content-Type: application/json');
 
+// Load configuration
+$configFile = __DIR__ . '/../config.json';
+if (!file_exists($configFile)) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Configuration file not found: config.json'
+    ]);
+    exit;
+}
+
+$config = json_decode(file_get_contents($configFile), true);
+if (!$config) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Failed to parse config.json'
+    ]);
+    exit;
+}
+
+$blastExePath = isset($config['blastExePath']) ? rtrim($config['blastExePath'], '/') . '/' : '';
+$dbPath = isset($config['dbPath']) ? rtrim($config['dbPath'], '/') . '/' : '';
+$jobsPath = isset($config['jobsPath']) ? rtrim($config['jobsPath'], '/') : __DIR__ . '/../jobs';
+
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -80,12 +105,11 @@ $jobData = [
 ];
 
 // Create job directory
-$jobsDir = __DIR__ . '/../jobs';
-if (!file_exists($jobsDir)) {
-    mkdir($jobsDir, 0755, true);
+if (!file_exists($jobsPath)) {
+    mkdir($jobsPath, 0755, true);
 }
 
-$jobDir = $jobsDir . '/' . $jobId;
+$jobDir = $jobsPath . '/' . $jobId;
 if (!mkdir($jobDir, 0755, true)) {
     http_response_code(500);
     echo json_encode([
@@ -123,12 +147,15 @@ $errorFile = $jobDir . '/error.log';
 $statusFile = $jobDir . '/status.txt';
 $pidFile = $jobDir . '/blast.pid';
 
-// Build BLAST command
-$cmd = escapeshellcmd($blastexe) . ' -query ' . escapeshellarg($querySeqFile) . ' -html';
+// Build BLAST command with full path
+$blastExecutable = $blastExePath . $blastexe;
+$cmd = escapeshellarg($blastExecutable) . ' -query ' . escapeshellarg($querySeqFile) . ' -html -out ' . escapeshellarg($resultsFile);
 
 // Add optional parameters
 if ($database) {
-    $cmd .= ' -db ' . escapeshellarg($database);
+    // Prepend dbPath if database is not an absolute path
+    $dbFullPath = (substr($database, 0, 1) === '/') ? $database : $dbPath . $database;
+    $cmd .= ' -db ' . escapeshellarg($dbFullPath);
 }
 if ($evalue) {
     $cmd .= ' -evalue ' . escapeshellarg($evalue);
@@ -181,21 +208,18 @@ file_put_contents($wrapperScript, $wrapperContent);
 chmod($wrapperScript, 0755);
 
 // Test if BLAST executable exists and is executable
-$testCmd = 'which ' . escapeshellarg($blastexe) . ' 2>&1';
-exec($testCmd, $testOutput, $testReturn);
-
-if ($testReturn !== 0) {
+if (!file_exists($blastExecutable) || !is_executable($blastExecutable)) {
     // BLAST executable not found - instant failure
     $jobData['status'] = 'failed';
-    $jobData['error'] = 'BLAST executable not found: ' . $blastexe;
+    $jobData['error'] = 'BLAST executable not found or not executable: ' . $blastExecutable;
     file_put_contents($queryFile, json_encode($jobData, JSON_PRETTY_PRINT));
     
     http_response_code(400);
     echo json_encode([
         'success' => false,
         'jobId' => $jobId,
-        'error' => 'BLAST executable not found: ' . $blastexe,
-        'message' => 'Job creation failed'
+        'error' => 'BLAST executable not found: ' . $blastExecutable,
+        'message' => 'Check blastExePath in config.json'
     ]);
     exit;
 }
@@ -244,7 +268,8 @@ echo json_encode([
     'jobId' => $jobId,
     'status' => 'running',
     'message' => 'Job created and running in background',
-    'statusCheckUrl' => 'get_job.php?jobId=' . $jobId
+    'statusCheckUrl' => 'get_job.php?jobId=' . $jobId,
+    'command' => $cmd  // Include command for debugging
 ]);
 
 /**

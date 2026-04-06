@@ -13,6 +13,29 @@
 
 header('Content-Type: application/json');
 
+// Load configuration
+$configFile = __DIR__ . '/../config.json';
+if (!file_exists($configFile)) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Configuration file not found: config.json'
+    ]);
+    exit;
+}
+
+$config = json_decode(file_get_contents($configFile), true);
+if (!$config) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Failed to parse config.json'
+    ]);
+    exit;
+}
+
+$jobsPath = isset($config['jobsPath']) ? rtrim($config['jobsPath'], '/') : __DIR__ . '/../jobs';
+
 // Accept both GET and POST requests
 $jobId = '';
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -48,9 +71,12 @@ if (!preg_match('/^job_[0-9]+_[a-f0-9]{8}$/', $jobId)) {
     exit;
 }
 
-// Load job data
-$jobsDir = __DIR__ . '/../jobs';
-$jobDir = $jobsDir . '/' . $jobId;
+// Create jobs directory if it doesn't exist
+if (!file_exists($jobsPath)) {
+    mkdir($jobsPath, 0755, true);
+}
+
+$jobDir = $jobsPath . '/' . $jobId;
 $jobFile = $jobDir . '/query.json';
 
 if (!file_exists($jobDir) || !is_dir($jobDir)) {

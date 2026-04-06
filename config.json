@@ -1,0 +1,5 @@
+{
+    "dbPath":"/data/blastdb_test/",
+    "blastExePath": "/data/miniconda/miniconda3/envs/blast/bin/",
+    "jobsPath":"/data/jobs/"
+}
