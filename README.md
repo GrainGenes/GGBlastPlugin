@@ -196,9 +196,75 @@ If BLAST commands are not found by the web server after conda installation:
    sudo -u www-data /usr/local/bin/blastn -version
    ```
 
+## Plugin Configuration (config.json)
+
+The plugin's behavior is configured via the `config.json` file in the plugin root directory. This file contains settings for the BLAST service, database paths, and plugin behavior.
+
+### Configuration File Location
+
+```
+plugins/SequenceLinkOut/config.json
+```
+
+### Configuration Options
+
+| Option          | Required | Default | Description                                                                   |
+|-----------------|----------|---------|-------------------------------------------------------------------------------|
+| `dbPath`        | Yes      | -       | Path to BLAST database directory                                              |
+| `blastExePath`  | Yes      | -       | Path to BLAST executables directory                                           |
+| `jobsPath`      | Yes      | -       | Path to store BLAST job files and results                                     |
+| `bpSizeLimit`   | No       | 20000   | Maximum base pair size for BLAST queries (helps prevent overload)             |
+| `blastService`  | No       | null    | Set to `"php"` to use local PHP BLAST API, otherwise uses legacy redirect     |
+
+### Example Configuration
+
+```json
+{
+    "dbPath": "/data/blastdb_test/",
+    "blastExePath": "/data/miniconda/miniconda3/envs/blast/bin/",
+    "jobsPath": "/data/jobs/",
+    "bpSizeLimit": 20000,
+    "blastService": "php"
+}
+```
+
+### Configuration Details
+
+**dbPath**: Directory containing BLAST-formatted databases. Must be readable by the web server user.
+
+**blastExePath**: Directory containing BLAST+ executables (blastn, blastp, etc.). Must be executable by the web server user.
+
+**jobsPath**: Directory where job files, query sequences, and results are stored. Must be writable by the web server user. Each job gets its own subdirectory (e.g., `job_1234567890_abcdef12/`).
+
+**bpSizeLimit**: Prevents users from submitting excessively large sequences that could impact server performance. When a user attempts to submit a sequence larger than this limit, they'll receive an error message. Can be adjusted based on your server capacity.
+
+**blastService**: 
+- Set to `"php"` to use the built-in PHP BLAST API (jobs run locally and return results asynchronously)
+- Set to `null` or omit for legacy behavior (redirects to external `/blast` page)
+
+### Directory Setup
+
+Ensure the configured directories exist and have proper permissions:
+
+```bash
+# Create directories
+sudo mkdir -p /data/blastdb_test
+sudo mkdir -p /data/jobs
+sudo mkdir -p /data/miniconda/miniconda3/envs/blast/bin
+
+# Set ownership to web server user
+sudo chown -R www-data:www-data /data/jobs
+
+# Set permissions
+sudo chmod 755 /data/blastdb_test
+sudo chmod 755 /data/jobs
+```
+
 ## JBrowse Configuration
 
-Configure the plugin behavior in your JBrowse `trackList.json` or track configuration:
+Configure the plugin behavior in your JBrowse `trackList.json` or track configuration.
+
+**Note:** The `blastService` and `bpSizeLimit` options have been moved to `config.json` (see Plugin Configuration section above). The options below are for JBrowse-specific settings.
 
 ### Basic Configuration
 
@@ -208,13 +274,10 @@ Configure the plugin behavior in your JBrowse `trackList.json` or track configur
 }
 ```
 
-### PHP BLAST Service Configuration
+### JBrowse Configuration with Optional Parameters
 
-To use the built-in PHP BLAST API instead of redirecting to an external BLAST page:
-
-```json
+```trackList.json
 {
-  "blastService": "php",
   "blastDatabase": "TaFielder",
   "blastEvalue": "1e-5",
   "blastMaxHits": 10
@@ -223,29 +286,27 @@ To use the built-in PHP BLAST API instead of redirecting to an external BLAST pa
 
 **Configuration Options:**
 
-| Option | Required | Default | Description |
-|--------|----------|---------|-------------|
-| `blastDatabase` | Yes | - | Name of the BLAST database to search |
-| `blastService` | No | (legacy) | Set to `"php"` to use the PHP API, otherwise opens `/blast` page |
-| `blastEvalue` | No | 1e-5 | E-value threshold for BLAST search |
-| `blastMaxHits` | No | 10 | Maximum number of hits to return |
+| Option           | Required | Default | Description                                                                       |
+|------------------|----------|---------|-----------------------------------------------------------------------------------|
+| `blastDatabase`  | Yes      | -       | Name of the BLAST database to search (must exist in `dbPath` from config.json)    |
+| `blastEvalue`    | No       | 1e-5    | E-value threshold for BLAST search                                                |
+| `blastMaxHits`   | No       | 10      | Maximum number of hits to return                                                  |
 
 ### Configuration Examples
 
-**Example 1: Use PHP API with custom parameters**
+**Example 1: Basic database configuration**
 ```json
 {
-  "blastService": "php",
-  "blastDatabase": "wheat_RefSeqv1.0",
-  "blastEvalue": "1e-10",
-  "blastMaxHits": 20
+  "blastDatabase": "wheat_RefSeqv1.0"
 }
 ```
 
-**Example 2: Legacy behavior (redirect to BLAST page)**
+**Example 2: Custom BLAST parameters**
 ```json
 {
-  "blastDatabase": "TaFielder"
+  "blastDatabase": "wheat_RefSeqv1.0",
+  "blastEvalue": "1e-10",
+  "blastMaxHits": 20
 }
 ```
 
@@ -256,7 +317,6 @@ To use the built-in PHP BLAST API instead of redirecting to an external BLAST pa
     {
       "label": "genes",
       "type": "CanvasFeatures",
-      "blastService": "php",
       "blastDatabase": "wheat_genes"
     }
   ]
@@ -265,9 +325,11 @@ To use the built-in PHP BLAST API instead of redirecting to an external BLAST pa
 
 ### How It Works
 
-- **With `blastService: "php"`**: Sequences are submitted directly to the PHP BLAST API (`blast/submit_job.php`), which runs BLAST in the background and returns results asynchronously.
+The plugin behavior depends on the `blastService` setting in `config.json`:
 
-- **Without `blastService` (legacy)**: Sequences are stored in localStorage and a new window opens to `/blast`, where an external BLAST interface retrieves the sequence data.
+- **With `blastService: "php"` in config.json**: Sequences are submitted directly to the PHP BLAST API (`blast/submit_job.php`), which runs BLAST in the background and returns results asynchronously.
+
+- **Without `blastService` (or set to null in config.json)**: Sequences are stored in localStorage and a new window opens to `/blast`, where an external BLAST interface retrieves the sequence data.
 
 ## Legacy Configuration (Deprecated)
 

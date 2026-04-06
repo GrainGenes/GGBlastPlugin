@@ -1,5 +1,7 @@
 {
     "dbPath":"/data/blastdb_test/",
     "blastExePath": "/data/miniconda/miniconda3/envs/blast/bin/",
-    "jobsPath":"/data/jobs/"
+    "jobsPath":"/data/jobs/",
+    "bpSizeLimit": 20000,
+    "blastService": "php"
 }

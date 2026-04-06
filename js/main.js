@@ -55,7 +55,7 @@ function(
                 }
 
                 // Check if using PHP BLAST service
-                if (JBrowse.config.blastService === "php") {
+                if (JBrowse.ggblast_plugin.blastService === "php") {
                     // Submit job via PHP API
 
                     // Prepare POST data for submit_job.php
@@ -122,7 +122,8 @@ function(
                 asset: null,
                 browser: browser,
                 panelDelayTimer: null,
-                bpSizeLimit: browser.config.bpSizeLimit || 20000,
+                bpSizeLimit: 20000, // Default value, will be updated from config.json
+                blastService: null, // Will be loaded from config.json
                 analyzeMenus: {},
                 sendTo: thisB.sendTo,
                 processInput: processInput,
@@ -134,12 +135,29 @@ function(
     
                     if (bpSizeLimit && bpSize > bpSizeLimit) {
                         // oversize message
-                        alert("The selected query size is "+bpSize+" bp.  Query is limited to "+bpSizeLimit+" bp.  bpSizeLimit can be set in trackList.json.");
+                        alert("The selected query size is "+bpSize+" bp.  Query is limited to "+bpSizeLimit+" bp.  bpSizeLimit can be set in config.json.");
                         return true;
                     }
                     else return false;
                 }
             };
+
+            // Load config.json to get bpSizeLimit and other settings
+            fetch('plugins/SequenceLinkOut/config.json')
+                .then(response => response.json())
+                .then(config => {
+                    if (config.bpSizeLimit) {
+                        browser.ggblast_plugin.bpSizeLimit = config.bpSizeLimit;
+                        console.log('Loaded bpSizeLimit from config.json:', config.bpSizeLimit);
+                    }
+                    if (config.blastService) {
+                        browser.ggblast_plugin.blastService = config.blastService;
+                        console.log('Loaded blastService from config.json:', config.blastService);
+                    }
+                })
+                .catch(error => {
+                    console.warn('Could not load config.json, using defaults:', error);
+                });
 
             // override BlockBased - for right click highlighted region
             require(["dojo/_base/lang", "JBrowse/View/Track/BlockBased"], function(lang, BlockBased){
