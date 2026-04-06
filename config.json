@@ -3,5 +3,6 @@
     "blastExePath": "/data/miniconda/miniconda3/envs/blast/bin/",
     "jobsPath":"/data/jobs/",
     "bpSizeLimit": 20000,
-    "blastService": "php"
+    "blastService": "php",
+    "blastApp": "https://graingenes.org/blast/"
 }

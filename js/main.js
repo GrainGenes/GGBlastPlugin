@@ -107,7 +107,7 @@ function(
                     localStorage.setItem('blastDatabaseSelect',JBrowse.config.blastDatabase);
 
                     // send to BLAST page
-                    window.open('/blast','_newtab');
+                    window.open(JBrowse.ggblast_plugin.blastApp,'_newtab');
                 }
             }
         },
@@ -122,8 +122,9 @@ function(
                 asset: null,
                 browser: browser,
                 panelDelayTimer: null,
-                bpSizeLimit: 20000, // Default value, will be updated from config.json
-                blastService: null, // Will be loaded from config.json
+                bpSizeLimit: 20000, // Default value, can be overridden by config.json or trackList.json
+                blastService: null, // Can be set in config.json or trackList.json
+                blastApp: '/blast', // Default URL, can be overridden by config.json or trackList.json
                 analyzeMenus: {},
                 sendTo: thisB.sendTo,
                 processInput: processInput,
@@ -135,28 +136,50 @@ function(
     
                     if (bpSizeLimit && bpSize > bpSizeLimit) {
                         // oversize message
-                        alert("The selected query size is "+bpSize+" bp.  Query is limited to "+bpSizeLimit+" bp.  bpSizeLimit can be set in config.json.");
+                        alert("The selected query size is "+bpSize+" bp.  Query is limited to "+bpSizeLimit+" bp.  bpSizeLimit can be set in config.json or trackList.json.");
                         return true;
                     }
                     else return false;
                 }
             };
 
-            // Load config.json to get bpSizeLimit and other settings
+            // Load config.json and merge settings, then allow trackList.json to override
             fetch('plugins/SequenceLinkOut/config.json')
                 .then(response => response.json())
                 .then(config => {
-                    if (config.bpSizeLimit) {
-                        browser.ggblast_plugin.bpSizeLimit = config.bpSizeLimit;
-                        console.log('Loaded bpSizeLimit from config.json:', config.bpSizeLimit);
+                    // Merge all config.json properties into ggblast_plugin
+                    Object.keys(config).forEach(key => {
+                        browser.ggblast_plugin[key] = config[key];
+                    });
+                    console.log('Loaded config from config.json:', config);
+                    
+                    // Allow trackList.json settings to override config.json
+                    if (browser.config.bpSizeLimit !== undefined) {
+                        browser.ggblast_plugin.bpSizeLimit = browser.config.bpSizeLimit;
+                        console.log('Overriding bpSizeLimit from trackList.json:', browser.config.bpSizeLimit);
                     }
-                    if (config.blastService) {
-                        browser.ggblast_plugin.blastService = config.blastService;
-                        console.log('Loaded blastService from config.json:', config.blastService);
+                    if (browser.config.blastService !== undefined) {
+                        browser.ggblast_plugin.blastService = browser.config.blastService;
+                        console.log('Overriding blastService from trackList.json:', browser.config.blastService);
+                    }
+                    if (browser.config.blastApp !== undefined) {
+                        browser.ggblast_plugin.blastApp = browser.config.blastApp;
+                        console.log('Overriding blastApp from trackList.json:', browser.config.blastApp);
                     }
                 })
                 .catch(error => {
                     console.warn('Could not load config.json, using defaults:', error);
+                    
+                    // Still allow trackList.json settings even if config.json fails
+                    if (browser.config.bpSizeLimit !== undefined) {
+                        browser.ggblast_plugin.bpSizeLimit = browser.config.bpSizeLimit;
+                    }
+                    if (browser.config.blastService !== undefined) {
+                        browser.ggblast_plugin.blastService = browser.config.blastService;
+                    }
+                    if (browser.config.blastApp !== undefined) {
+                        browser.ggblast_plugin.blastApp = browser.config.blastApp;
+                    }
                 });
 
             // override BlockBased - for right click highlighted region
