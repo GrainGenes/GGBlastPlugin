@@ -49,15 +49,14 @@ function(
                 r[0] += " GrainGenes="+db;
                 data.region = r.join('\n');
 
-                if (!JBrowse.config.blastDatabase) {
-                    alert("blastDatabase not defined in trackList.json, cannot send to BLAST");
-                    return;
-                }
-
                 // Check if using PHP BLAST service
-                if (JBrowse.ggblast_plugin.blastService === "php") {
+                if (JBrowse.ggblast_plugin.blastService == true) {
                     // Submit job via PHP API
 
+                    if (!JBrowse.config.blastDatabase) {
+                        alert("blastDatabase not defined in trackList.json, cannot send to BLAST");
+                        return;
+                    }
                     // Prepare POST data for submit_job.php
                     const formData = new FormData();
                     formData.append('blastexe', 'blastn'); // Default to blastn, could be made configurable
@@ -75,7 +74,7 @@ function(
                     console.log("Submitting BLAST job via PHP API to database:", JBrowse.config.blastDatabase);
 
                     // Submit the job
-                    fetch('plugins/SequenceLinkOut/blast/submit_job.php', {
+                    fetch('plugins/GGBlastPlugin/blast/submit_job.php', {
                         method: 'POST',
                         body: formData
                     })
@@ -87,7 +86,7 @@ function(
                             console.log("Full BLAST command:", result.command);
                             
                             // Open results page in new tab to check status and view results
-                            const resultsUrl = `plugins/SequenceLinkOut/blast/results.php?jobId=${result.jobId}`;
+                            const resultsUrl = `plugins/GGBlastPlugin/blast/results.php?jobId=${result.jobId}`;
                             window.open(resultsUrl, '_blank');
                         } else {
                             alert("BLAST job submission failed:\n" + (result.error || "Unknown error"));
@@ -116,7 +115,7 @@ function(
             let thisB = this;
             let browser = this.browser;
 
-            console.log("plugin: SequenceLinkOut");
+            console.log("plugin: GGBlastPlugin");
 
             browser.ggblast_plugin = {
                 asset: null,
@@ -124,7 +123,7 @@ function(
                 panelDelayTimer: null,
                 bpSizeLimit: 20000, // Default value, can be overridden by config.json or trackList.json
                 blastService: null, // Can be set in config.json or trackList.json
-                blastApp: '/blast', // Default URL, can be overridden by config.json or trackList.json
+                blastApp: 'https://graingenes.org/blast/', // Default URL, can be overridden by config.json or trackList.json
                 analyzeMenus: {},
                 sendTo: thisB.sendTo,
                 processInput: processInput,
@@ -144,7 +143,7 @@ function(
             };
 
             // Load config.json and merge settings, then allow trackList.json to override
-            fetch('plugins/SequenceLinkOut/config.json')
+            fetch('plugins/GGBlastPlugin/config.json')
                 .then(response => response.json())
                 .then(config => {
                     // Merge all config.json properties into ggblast_plugin
@@ -246,15 +245,17 @@ function(
                 thisB.initAnalyzeMenu();
                 initMenu(menuName);  // Add original BLAST highlighted region menu item
                 
-                // Add Jobs menu item
-                browser.addGlobalMenuItem( menuName, new MenuItem({
-                    id: 'menubar_blast_jobs',
-                    label: 'Jobs',
-                    iconClass: 'dijitIconFolderOpen',
-                    onClick: function() {
-                        window.open('plugins/SequenceLinkOut/blast/jobs.php', '_blank');
-                    }
-                }));
+                // Add Jobs menu item only if blastService is enabled
+                if (browser.ggblast_plugin.blastService !== false) {
+                    browser.addGlobalMenuItem( menuName, new MenuItem({
+                        id: 'menubar_blast_jobs',
+                        label: 'Jobs',
+                        iconClass: 'dijitIconFolderOpen',
+                        onClick: function() {
+                            window.open('plugins/GGBlastPlugin/blast/jobs.php', '_blank');
+                        }
+                    }));
+                }
             });
 
             // initMenu sets up Analyze Menu item(s)

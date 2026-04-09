@@ -1,4 +1,4 @@
-# SequenceLinkOut JBrowse Plugin
+# GGBlastPlugin - JBrowse Plugin
 Provides options to select and link out a sequence to another web-app, like ggblast.
 Currently customized to link to ggblast
 
@@ -65,7 +65,7 @@ The plugin's behavior is configured via the `config.json` file in the plugin roo
 ### Configuration File Location
 
 ```
-plugins/SequenceLinkOut/config.json
+plugins/GGBlastPlugin/config.json
 ```
 
 ### Configuration Options

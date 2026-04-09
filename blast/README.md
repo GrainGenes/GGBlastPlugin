@@ -4,7 +4,7 @@ This directory contains PHP scripts for submitting and managing BLAST jobs via H
 
 ## Integration with JBrowse
 
-This API is integrated with the SequenceLinkOut JBrowse plugin. To enable automatic BLAST submission from JBrowse, add the following to your trackList.json:
+This API is integrated with the GGBlastPlugin JBrowse plugin. To enable automatic BLAST submission from JBrowse, add the following to your trackList.json:
 
 ```json
 {
@@ -13,7 +13,7 @@ This API is integrated with the SequenceLinkOut JBrowse plugin. To enable automa
 }
 ```
 
-See the main [SequenceLinkOut README](../README.md#jbrowse-configuration) for complete configuration options.
+See the main [GGBlastPlugin README](../README.md#jbrowse-configuration) for complete configuration options.
 
 ## API Endpoints
 
@@ -32,11 +32,11 @@ See the main [SequenceLinkOut README](../README.md#jbrowse-configuration) for co
 
 #### Optional Parameters
 
-| Parameter | Type   | Default | Description                           |
-|-----------|--------|---------|---------------------------------------|
-| database  | string | null    | Target BLAST database name            |
-| evalue    | string | 1e-5    | E-value threshold                     |
-| maxHits   | int    | 10      | Maximum number of hits to return      |
+| Parameter | Type   | Default | Description                          |
+|-----------|--------|---------|--------------------------------------|
+| database  | string | null    | Target BLAST database name           |
+| evalue    | string | 1e-5    | E-value threshold                    |
+| maxHits   | int    | 10      | Maximum number of hits to return     |
 
 #### Valid BLAST Executables
 
@@ -49,7 +49,7 @@ See the main [SequenceLinkOut README](../README.md#jbrowse-configuration) for co
 #### Example Request (cURL)
 
 ```bash
-curl -X POST http://your-domain/plugins/SequenceLinkOut/blast/submit_job.php \
+curl -X POST http://your-domain/plugins/GGBlastPlugin/blast/submit_job.php \
   -d "blastexe=blastn" \
   -d "query=ATCGATCGATCGATCG" \
   -d "database=TaFielder"
@@ -58,7 +58,7 @@ curl -X POST http://your-domain/plugins/SequenceLinkOut/blast/submit_job.php \
 #### Example Request (JavaScript)
 
 ```javascript
-fetch('/plugins/SequenceLinkOut/blast/submit_job.php', {
+fetch('/plugins/GGBlastPlugin/blast/submit_job.php', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -136,13 +136,13 @@ fetch('/plugins/SequenceLinkOut/blast/submit_job.php', {
 #### Example Request (cURL)
 
 ```bash
-curl "http://your-domain/plugins/SequenceLinkOut/blast/get_job.php?jobId=job_1709000000_a1b2c3d4"
+curl "http://your-domain/plugins/GGBlastPlugin/blast/get_job.php?jobId=job_1709000000_a1b2c3d4"
 ```
 
 #### Example Request (JavaScript)
 
 ```javascript
-fetch('/plugins/SequenceLinkOut/blast/get_job.php?jobId=job_1709000000_a1b2c3d4')
+fetch('/plugins/GGBlastPlugin/blast/get_job.php?jobId=job_1709000000_a1b2c3d4')
 .then(response => response.json())
 .then(data => {
     console.log('Job status:', data.job.status);
@@ -355,4 +355,4 @@ Check the job's `query.json` and `error.log` files for detailed error informatio
 
 ## Test Page
 
-https://malt.pw.usda.gov/jb/plugins/SequenceLinkOut/blast/test.html
+https://malt.pw.usda.gov/jb/plugins/GGBlastPlugin/blast/test.html
