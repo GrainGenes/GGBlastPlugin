@@ -2,6 +2,16 @@
 Provides options to select and link out a sequence to another web-app, like ggblast.
 Currently customized to link to ggblast
 
+## Running Tests
+
+Run the unit tests to validate the plugin functionality:
+
+```bash
+npm test
+```
+
+This runs 38+ tests covering validation, security, configuration, and job management without requiring BLAST to be installed. See [tests/README.md](tests/README.md) for more details.
+
 ## BLAST API
 
 This plugin includes a BLAST job submission API in the `blast/` directory. See [blast/README.md](blast/README.md) for full API documentation.
