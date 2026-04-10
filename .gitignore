@@ -1,0 +1,21 @@
+# Dependencies
+/vendor/
+composer.lock
+
+# Test outputs
+/coverage/
+.phpunit.result.cache
+
+# Job files (for local testing)
+/jobs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
