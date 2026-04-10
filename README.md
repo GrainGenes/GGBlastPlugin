@@ -10,13 +10,14 @@ When viewing a Gene/Transcript, a BLAST button enable blasting the gene.
 This will open a new tab where you can view the progress and results:  
 <img width="600" alt="image" src="https://github.com/user-attachments/assets/12f5a64a-28f0-4220-93df-8a6415a7f6c4" />
 
+You can also blast a highlighted region:  
 <img width="436" height="238" alt="image" src="https://github.com/user-attachments/assets/95381dac-45bb-479b-97ae-9572df543232" />
 
-
+View BLAST job history, click from the Blast menu:  
 <img width="282" height="112" alt="image" src="https://github.com/user-attachments/assets/c1f4630d-37b1-4168-9af5-3d19f5f8b3a5" />
 
-
-<img width="1221" height="385" alt="image" src="https://github.com/user-attachments/assets/df79d3d9-4ce4-4ad6-9263-897c830eebde" />
+Blast Job History  
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/df79d3d9-4ce4-4ad6-9263-897c830eebde" />
 
 ## BLAST API
 
