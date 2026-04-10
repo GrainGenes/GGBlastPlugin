@@ -7,7 +7,8 @@ When installed, a BLAST menu will appear at the top:
 When viewing a Gene/Transcript, a BLAST button enable blasting the gene.  
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/8d83fd36-9a67-47f3-a7a7-a001906db2ff" />
 
-<img width="912" height="743" alt="image" src="https://github.com/user-attachments/assets/12f5a64a-28f0-4220-93df-8a6415a7f6c4" />
+This will open a new tab where you can view the progress and results:  
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/12f5a64a-28f0-4220-93df-8a6415a7f6c4" />
 
 <img width="436" height="238" alt="image" src="https://github.com/user-attachments/assets/95381dac-45bb-479b-97ae-9572df543232" />
 
