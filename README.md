@@ -1,7 +1,7 @@
 # GGBlastPlugin - JBrowse Plugin
 A JBrowse plugin to provide BLAST features within JBrowse.
 
-When installed, a BLAST menu will appear at the top:
+<div style="display: inline-block;vertical-align: top;">When installed, a BLAST menu will appear at the top:</div>
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/26ea0c65-88f9-484f-bb68-a46f88775783" />  
 When viewing a Gene/Transcript, a BLAST button enable blasting the gene.
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/8d83fd36-9a67-47f3-a7a7-a001906db2ff" />
