@@ -23,6 +23,10 @@ Blast Job History
 
 This plugin includes a BLAST job submission API in the `blast/` directory. See [blast/README.md](blast/README.md) for full API documentation.
 
+## Configure Plugin
+In JBrowse's jbrowse.conf file:  
+<img width="373" height="133" alt="image" src="https://github.com/user-attachments/assets/d524e2d0-6948-4eba-b9f6-98079d810b05" />
+
 ## Installing BLAST with Conda
 
 The BLAST API requires NCBI BLAST+ to be installed and available in the system PATH. The easiest way to install BLAST is using conda/mamba.
