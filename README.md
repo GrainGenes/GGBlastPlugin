@@ -60,18 +60,20 @@ This is not strictly required but if you want to run some of the testing tools, 
 - **trackList.json** - Add references blastDatabase, blastSercice config.
 
 
-## Configure Plugin
+### jbrowse.conf
+This is found where JBrowse is installed.
+
 In JBrowse's jbrowse.conf file:  
 <img width="373" height="133" alt="image" src="https://github.com/user-attachments/assets/d524e2d0-6948-4eba-b9f6-98079d810b05" />
 
 
-## Plugin Configuration (config.json)
+### config.json
+This is found in the GGBlastPlugin directory
 
 The plugin's behavior is configured via the `config.json` file in the plugin root directory. This file contains settings for the BLAST service, database paths, and plugin behavior.
 
 **Configuration Priority:** Settings can be defined in both `config.json` and JBrowse's `trackList.json`. When both are present, `trackList.json` values take precedence over `config.json` values, allowing for dataset-specific overrides.
 
-### Configuration Options
 ```
 plugins/GGBlastPlugin/config.json
 ```
@@ -85,7 +87,7 @@ plugins/GGBlastPlugin/config.json
 | `blastService`  | No       | null                            | Set to `"php"` to use local PHP BLAST API, otherwise uses legacy redirect     |
 | `blastApp`      | No       | `/blast`                        | URL for remote BLAST service (used when `blastService` is not `"php"`)        |
 
-### Example Configuration
+**Example Configuration**
 
 We used the following in our example
 ```json
@@ -99,7 +101,7 @@ We used the following in our example
 }
 ```
 
-### Configuration Details
+**Configuration Details**
 
 **dbPath**: Directory containing BLAST-formatted databases. Must be readable by the web server user.
 
@@ -117,94 +119,32 @@ use `which blastn` to determine where your blastExePath is located.
 
 **blastApp**: URL of the external BLAST application to redirect to when `blastService` is not set to `"php"`. Defaults to `/blast` if not specified. The sequence data is stored in localStorage and the external application should retrieve it from there. For example: `"https://graingenes.org/blast/"`
 
-### Directory Setup
 
-Ensure the configured directories exist and have proper permissions:
-
-```bash
-# Create directories
-sudo mkdir -p /data/blastdb_test
-sudo mkdir -p /data/jobs
-
-# Set ownership to web server user
-sudo chown -R www-data:www-data /data/jobs
-
-# Set permissions
-sudo chmod 755 /data/blastdb_test
-sudo chmod 755 /data/jobs
-```
-
-## JBrowse Configuration
+### trackList.json
+This is found in the genome browser dataset configuration.
 
 Configure the plugin behavior in your JBrowse `trackList.json` or track configuration.
 
 **Configuration Priority:** Settings in `trackList.json` will override the same settings from `config.json`, allowing dataset-specific customization. You can override `bpSizeLimit`, `blastService`, and `blastApp` on a per-dataset basis.
 
-### Basic Configuration
+**Basic Configuration**
 
 ```json
 {
-  "blastDatabase": "TaFielder"
+  "blastDatabase": "S_urartu"
 }
 ```
 
-### Configuration with Optional Parameters
+**Configuration with Optional Parameters**
 
 ```json
 {
-  "blastDatabase": "TaFielder",
+  "blastDatabase": "S_urartu",
   "blastEvalue": "1e-5",
   "blastMaxHits": 10
 }
 ```
 
-### Configuration with Plugin Setting Overrides
-
-You can override plugin-level settings from config.json:
-
-```json
-{
-  "blastDatabase": "TaFielder",
-  "blastService": "php",
-  "bpSizeLimit": 50000,
-  "blastApp": "https://custom-blast-server.org/blast/"
-}
-```
-
-**Configuration Options:**
-
-| Option           | Required | Default | Description                                                                       |
-|------------------|----------|---------|-----------------------------------------------------------------------------------|
-| `blastDatabase`  | Yes      | -       | Name of the BLAST database to search (must exist in `dbPath` from config.json)    |
-| `blastEvalue`    | No       | 1e-5    | E-value threshold for BLAST search                                                |
-| `blastMaxHits`   | No       | 10      | Maximum number of hits to return                                                  |
-| `blastService`   | No       | -       | Override config.json: Set to `"php"` for local BLAST API                          |
-| `bpSizeLimit`    | No       | -       | Override config.json: Maximum base pairs for queries                              |
-| `blastApp`       | No       | -       | Override config.json: URL for remote BLAST service                                |
-
-### Configuration Examples
-
-**Example 1: Basic database configuration**
-```json
-{
-  "blastDatabase": "wheat_RefSeqv1.0"
-}
-```
-
-### How It Works
-
-**Configuration Loading:**
-1. Plugin loads default values
-2. Settings from `config.json` are merged in
-3. Settings from `trackList.json` override both defaults and `config.json` values
-
-**BLAST Service Behavior:**
-
-The plugin behavior depends on the `blastService` setting (from either `config.json` or `trackList.json`):
-
-- **With `blastService: "php"`**: Sequences are submitted directly to the PHP BLAST API (`blast/submit_job.php`), which runs BLAST in the background and returns results asynchronously.
-
-- **Without `blastService` (or set to null)**: Sequences are stored in localStorage and a new window opens to the URL specified in `blastApp` (defaults to `/blast`), where an external BLAST interface retrieves the sequence data.
 
 ## BLAST API
 
