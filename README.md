@@ -1,81 +1,69 @@
 # GGBlastPlugin - JBrowse Plugin
-A JBrowse plugin to provide BLAST features within JBrowse.
+A JBrowse plugin that integrates BLAST search functionality, allowing users to BLAST genes, transcripts, or selected genomic regions directly from the genome browser with job tracking and history management.
 
-When installed, a BLAST menu will appear at the top:  
+**BLAST Menu Integration** - The plugin adds a dedicated BLAST menu to the JBrowse navigation bar, providing quick access to BLAST functionality and job history:  
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/26ea0c65-88f9-484f-bb68-a46f88775783" />    
 
-When viewing a Gene/Transcript, a BLAST button enable blasting the gene.  
+**One-Click Gene/Transcript BLAST** - When viewing genomic features, a BLAST button appears in the feature detail panel, enabling users to submit the gene or transcript sequence for BLAST analysis with a single click:  
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/8d83fd36-9a67-47f3-a7a7-a001906db2ff" />
 
-This will open a new tab where you can view the progress and results:  
+**Real-Time Job Progress Tracking** - BLAST jobs open in a new browser tab displaying real-time job status, execution progress, and formatted results with alignment details and E-values:  
 <img width="600" alt="image" src="https://github.com/user-attachments/assets/12f5a64a-28f0-4220-93df-8a6415a7f6c4" />
 
-You can also blast a highlighted region:  
+**Custom Region BLAST** - Users can select any genomic region using the browser's selection tool and submit that specific sequence for BLAST analysis:  
 <img width="436" height="238" alt="image" src="https://github.com/user-attachments/assets/95381dac-45bb-479b-97ae-9572df543232" />
 
-View BLAST job history, click from the Blast menu:  
+**Job History Access** - Access your BLAST job history from the BLAST menu to review, reopen, or manage past BLAST searches:  
 <img width="282" height="112" alt="image" src="https://github.com/user-attachments/assets/c1f4630d-37b1-4168-9af5-3d19f5f8b3a5" />
 
-Blast Job History  
+**Job History Dashboard** - The job history interface displays all previous BLAST searches with timestamps, job status, database information, and quick access to results:  
 <img width="600" alt="image" src="https://github.com/user-attachments/assets/df79d3d9-4ce4-4ad6-9263-897c830eebde" />
 
-## BLAST API
+## Prerequisites
 
-This plugin includes a BLAST job submission API in the `blast/` directory. See [blast/README.md](blast/README.md) for full API documentation.
+- **Install JBrowse 1.x** - A working JBrowse installation (beyond scope of this doc)
+- **Install NCBI BLAST+** - Command-line BLAST tools (blastn, blastp, blastx, etc.)
+- **Install BLAST Databases** - Pre-formatted BLAST databases for your organisms/sequences
+- **Web Server/PHP** - Apache/Nginx with PHP 7.x support and write permissions for job storage directory (beyond the scope of this doc)
+- **Node.js & npm** - For plugin installation and development
+
+### Install JBrowse 1.x
+https://jbrowse.org/jbrowse1.html
+
+### Install NCBI BLAST+
+There are various way of installing the blast command-line tools (blastn, blastp, makeblastdb, etc.)
+
+Here is one way:
+```bash
+# On Ubuntu/Debian
+sudo apt update
+sudo apt install ncbi-blast+
+```
+
+### Install BLAST databases
+
+### Web Server / PHP
+A full description of this is beyond the scope of this doc.   
+Presuming Apache2, use this to install php:
+```
+sudo a2enmod php*
+```
+
+### Node.js & npm
+This is not strictly required but if you want to run some of the testing tools, you will need node.js and npm for the project.
+
+
+## Setup
+
+- **config.json** - Edit important directories in the GGBlastPlugin directory
+- **jbrowse.conf** - Add the GGBlastPlugin in JBrowse jbrowse.conf file.
+- **trackList.json** - Add references blastDatabase, blastSercice config.
+
 
 ## Configure Plugin
 In JBrowse's jbrowse.conf file:  
 <img width="373" height="133" alt="image" src="https://github.com/user-attachments/assets/d524e2d0-6948-4eba-b9f6-98079d810b05" />
 
-## Installing BLAST with Conda
-
-The BLAST API requires NCBI BLAST+ to be installed and available in the system PATH. The easiest way to install BLAST is using conda/mamba.
-
-### NCBI BLAST Installation
-
-#### Option 1: Create Dedicated BLAST Environment (Recommended)
-
-First, install Miniconda or Anaconda if you haven't already:
-
-```bash
-# Download and install Miniconda (lightweight)
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
-source ~/.bashrc
-```
-
-**Important:** If you get Python version conflicts (e.g., with Python 3.13), use this method to specify a compatible Python version.
-
-```bash
-# Create a new conda environment for BLAST with Python 3.12
-conda create -n blast -c bioconda -c conda-forge python=3.12 blast
-
-# Activate the environment
-conda activate blast
-
-# Verify installation
-blastn -version
-
-# To make BLAST available system-wide, add to PATH
-# Add this to your ~/.bashrc or /etc/profile:
-export PATH="/path/to/miniconda3/envs/blast/bin:$PATH"
-```
-
-#### Option 2: Install via System Package Manager (Quickest)
-
-If you just want to get BLAST working without conda complexity:
-
-```bash
-# On Ubuntu/Debian
-sudo apt update
-sudo apt install ncbi-blast+
-
-# On CentOS/RHEL
-sudo yum install ncbi-blast+
-
-# Verify installation
-blastn -version
-```
 
 ## Plugin Configuration (config.json)
 
@@ -83,13 +71,10 @@ The plugin's behavior is configured via the `config.json` file in the plugin roo
 
 **Configuration Priority:** Settings can be defined in both `config.json` and JBrowse's `trackList.json`. When both are present, `trackList.json` values take precedence over `config.json` values, allowing for dataset-specific overrides.
 
-### Configuration File Location
-
+### Configuration Options
 ```
 plugins/GGBlastPlugin/config.json
 ```
-
-### Configuration Options
 
 | Option          | Required | Default                         | Description                                                                   |
 |-----------------|----------|---------------------------------|-------------------------------------------------------------------------------|
@@ -102,6 +87,7 @@ plugins/GGBlastPlugin/config.json
 
 ### Example Configuration
 
+We used the following in our example
 ```json
 {
     "dbPath": "/data/blastdb_test/",
@@ -118,6 +104,8 @@ plugins/GGBlastPlugin/config.json
 **dbPath**: Directory containing BLAST-formatted databases. Must be readable by the web server user.
 
 **blastExePath**: Directory containing BLAST+ executables (blastn, blastp, etc.). Must be executable by the web server user.
+
+use `which blastn` to determine where your blastExePath is located.
 
 **jobsPath**: Directory where job files, query sequences, and results are stored. Must be writable by the web server user. Each job gets its own subdirectory (e.g., `job_1234567890_abcdef12/`).
 
@@ -218,7 +206,12 @@ The plugin behavior depends on the `blastService` setting (from either `config.j
 
 - **Without `blastService` (or set to null)**: Sequences are stored in localStorage and a new window opens to the URL specified in `blastApp` (defaults to `/blast`), where an external BLAST interface retrieves the sequence data.
 
-## Running Tests
+## BLAST API
+
+This plugin includes a BLAST job submission API in the `blast/` directory. See [blast/README.md](blast/README.md) for full API documentation.
+
+
+## Tests
 
 Run the unit tests to validate the plugin functionality:
 
