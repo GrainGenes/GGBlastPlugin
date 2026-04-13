@@ -1,6 +1,8 @@
 # GGBlastPlugin - JBrowse Plugin
 A JBrowse plugin that integrates BLAST search functionality, allowing users to BLAST genes, transcripts, or selected genomic regions directly from the genome browser with job tracking and history management.
 
+A sample application can be found at: https://graingenes.org/jb/?data=/ggds/whe-test
+
 **BLAST Menu Integration** - The plugin adds a dedicated BLAST menu to the JBrowse navigation bar, providing quick access to BLAST functionality and job history:  
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/26ea0c65-88f9-484f-bb68-a46f88775783" />    
 
@@ -41,6 +43,9 @@ sudo apt install ncbi-blast+
 ```
 
 ### Install BLAST databases
+BLAST databases can be made from FASTA files using NCBI blast tool, `makeblastdb`  
+
+A small sample database (used in our example) is available at http://graingenes.org/ggds/whe-test/S_urartu.zip
 
 ### Web Server / PHP
 A full description of this is beyond the scope of this doc.   
@@ -105,6 +110,9 @@ We used the following in our example
 
 **dbPath**: Directory containing BLAST-formatted databases. Must be readable by the web server user.
 
+A small sample database (used in our example) is available at http://graingenes.org/ggds/whe-test/S_urartu.zip
+
+
 **blastExePath**: Directory containing BLAST+ executables (blastn, blastp, etc.). Must be executable by the web server user.
 
 use `which blastn` to determine where your blastExePath is located.
@@ -127,8 +135,7 @@ Configure the plugin behavior in your JBrowse `trackList.json` or track configur
 
 **Configuration Priority:** Settings in `trackList.json` will override the same settings from `config.json`, allowing dataset-specific customization. You can override `bpSizeLimit`, `blastService`, and `blastApp` on a per-dataset basis.
 
-**Basic Configuration**
-
+A small sample database (used in our example) is available at http://graingenes.org/ggds/whe-test/S_urartu.zip
 ```json
 {
   "blastDatabase": "S_urartu"
