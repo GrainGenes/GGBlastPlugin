@@ -16,9 +16,6 @@ A JBrowse plugin that integrates BLAST search functionality, allowing users to B
   - [Plugin Configuration (config.json)](#plugin-configuration-configjson)
   - [JBrowse Configuration (jbrowse.conf)](#jbrowse-configuration-jbrowseconf)
   - [Dataset Configuration (trackList.json)](#dataset-configuration-tracklistjson)
-- [Verification](#verification)
-- [Troubleshooting](#troubleshooting)
-- [Usage Examples](#usage-examples)
 - [BLAST API](#blast-api)
 - [Development & Testing](#development--testing)
 - [Getting Help](#getting-help)
@@ -250,23 +247,19 @@ The `blastDatabase` value should match the name of a database file in your `dbPa
 
 This is found in the GGBlastPlugin directory: `plugins/GGBlastPlugin/config.json`
 
-### Plugin Configuration (config.json)
-
-This is found in the GGBlastPlugin directory: `plugins/GGBlastPlugin/config.json`
-
 The plugin's behavior is configured via the `config.json` file in the plugin root directory. This file contains settings for the BLAST service, database paths, and plugin behavior.
 
 **Configuration Priority:** Settings can be defined in both `config.json` and JBrowse's `trackList.json`. When both are present, `trackList.json` values take precedence over `config.json` values, allowing for dataset-specific overrides.
 
 #### Configuration Options
 
-| Option            | Required | Default   | Description                                                      |
-|:------------------|:---------|:----------|:-----------------------------------------------------------------|
-| `dbPath`          | Yes      | -         | Path to BLAST database directory                                 |
-| `blastExePath`    | Yes      | -         | Path to BLAST executables directory                              |
-| `jobsPath`        | Yes      | -         | Path to store BLAST job files and results                        |
-| `bpSizeLimit`     | No       | 20000     | Maximum base pair size for BLAST queries (prevents overload)     |
-| `blastService`    | No       | null      | Set to `"php"` for local API, else uses legacy redirect          |
+| Option            | Required | Default   | Description                                                       |
+|:------------------|:---------|:----------|:------------------------------------------------------------------|
+| `dbPath`          | Yes      | -         | Path to BLAST database directory                                  |
+| `blastExePath`    | Yes      | -         | Path to BLAST executables directory                               |
+| `jobsPath`        | Yes      | -         | Path to store BLAST job files and results                         |
+| `bpSizeLimit`     | No       | 20000     | Maximum base pair size for BLAST queries (prevents overload)      |
+| `blastService`    | No       | null      | Set to `"php"` for local API, else uses legacy redirect           |
 | `blastApp`        | No       | `/blast`  | URL for remote BLAST service (when `blastService` is not `"php"`) |
 
 #### Example Configuration
@@ -356,256 +349,10 @@ The `blastDatabase` value should match the base name of your BLAST database file
 }
 ```
 
-#### Configuration with Plugin Setting Overrides
-
-```json
-{
-  "blastDatabase": "S_urartu",
-  "blastService": "php",
-  "bpSizeLimit": 50000
-}
-```
-
-#### Configuration Options
-
-| Option            | Required | Default | Description                                                   |
-|:------------------|:---------|:--------|:--------------------------------------------------------------|
-| `blastDatabase`   | Yes      | -       | BLAST database name (must exist in `dbPath` from config.json) |
-| `blastEvalue`     | No       | 1e-5    | E-value threshold for BLAST search                            |
-| `blastMaxHits`    | No       | 10      | Maximum number of hits to return                              |
-| `blastService`    | No       | null    | Override plugin-level `blastService` setting                  |
-| `bpSizeLimit`     | No       | 20000   | Override plugin-level sequence size limit                     |
-
----
-
-## Verification
-
-After installation and configuration, verify that everything is working correctly:
-
-### 1. Check Plugin Loads
-
-1. Open your JBrowse instance in a web browser
-2. Open the browser's developer console (F12)
-3. Look for any error messages related to GGBlastPlugin
-4. You should see a **BLAST** menu in the JBrowse navigation bar
-
-### 2. Test BLAST Functionality
-
-1. Navigate to a track with gene features
-2. Click on a gene or transcript
-3. Look for the **BLAST** button in the feature detail panel
-4. Click the BLAST button
-5. A new tab should open showing the BLAST job submission
-
-### 3. Test Region Selection
-
-1. Use the selection tool to highlight a genomic region
-2. Right-click or access the context menu
-3. Select BLAST option
-4. Verify that the job is submitted
-
-### 4. Check Job History
-
-1. Click the **BLAST** menu in the navigation bar
-2. Select **Job History** or similar option
-3. Verify that your submitted jobs appear in the list
-
-### 5. Verify Backend Functionality
-
-Check that job files are being created:
-
-```bash
-# List jobs directory
-ls -la /data/jobs/
-
-# You should see directories like:
-# job_1234567890_abcdef12/
-```
-
-Check for errors in web server logs:
-
-```bash
-# Apache logs
-sudo tail -f /var/log/apache2/error.log
-
-# Nginx logs
-sudo tail -f /var/log/nginx/error.log
-```
-
----
-
-## Troubleshooting
-
-### BLAST Menu Not Appearing
-
-**Problem:** The BLAST menu doesn't show up in JBrowse.
-
-**Solutions:**
-- Check browser console for JavaScript errors
-- Verify plugin is properly listed in `jbrowse.conf`
-- Clear browser cache and reload
-- Verify plugin directory structure is correct: `plugins/GGBlastPlugin/js/main.js` should exist
-
-### Permission Denied Errors
-
-**Problem:** "Permission denied" or "Cannot write to jobsPath" errors.
-
-**Solutions:**
-```bash
-# Fix ownership
-sudo chown -R www-data:www-data /data/jobs
-
-# Fix permissions
-sudo chmod 755 /data/jobs
-
-# Check directory permissions
-ls -la /data/jobs
-```
-
-### BLAST Command Not Found
-
-**Problem:** Error message: "blastn: command not found" or similar.
-
-**Solutions:**
-```bash
-# Verify BLAST is installed
-which blastn
-
-# Check if path in config.json is correct
-dirname $(which blastn)
-
-# If using conda, ensure PATH is set in web server environment
-# Add to /etc/environment or Apache envvars:
-export PATH="/path/to/miniconda3/envs/blast/bin:$PATH"
-```
-
-### BLAST Database Not Found
-
-**Problem:** "Database not found" or "No alias or index file" errors.
-
-**Solutions:**
-- Verify database files exist in `dbPath` directory
-- Check that `blastDatabase` name matches the actual database name (without extensions)
-- Verify database was properly formatted with `makeblastdb`
-- Check file permissions on database directory
-
-```bash
-# List databases
-ls -la /data/blastdb_test/
-
-# Verify database format
-blastdbcmd -db /data/blastdb_test/S_urartu -info
-```
-
-### Jobs Not Running
-
-**Problem:** Jobs are submitted but never complete.
-
-**Solutions:**
-- Check web server error logs for PHP errors
-- Verify PHP has permission to execute BLAST commands
-- Check that `blastService` is set to `"php"` in config
-- Ensure BLAST path is accessible to PHP:
-
-```bash
-# Test from command line as www-data user
-sudo -u www-data /usr/bin/blastn -version
-```
-
-### E-value or Hit Limit Issues
-
-**Problem:** Not seeing expected results or too many/few hits.
-
-**Solutions:**
-- Adjust `blastEvalue` in trackList.json
-- Adjust `blastMaxHits` in trackList.json
-- Check BLAST database size and coverage
-
-### Sequence Size Limit Exceeded
-
-**Problem:** "Sequence too large" error messages.
-
-**Solutions:**
-- Increase `bpSizeLimit` in `config.json` or `trackList.json`
-- Be cautious: larger sequences require more server resources
-- Consider server capacity before increasing limits
-
----
-
-## Usage Examples
-
-### Example 1: BLAST a Specific Gene
-
-1. Navigate to a gene of interest in JBrowse
-2. Click on the gene feature to open the detail panel
-3. Click the **BLAST** button
-4. Results will open in a new tab showing alignments
-
-### Example 2: BLAST a Custom Genomic Region
-
-1. Use the selection tool to highlight a region of interest
-2. Right-click within the selected region
-3. Choose **BLAST** from the context menu
-4. View results in the new tab
-
-### Example 3: Review Past BLAST Jobs
-
-1. Click the **BLAST** menu in the navigation bar
-2. Select **Job History**
-3. Click on any previous job to view its results again
-
-### Example 4: Using Multiple Databases
-
-Configure different databases for different datasets:
-
-**Dataset 1 trackList.json:**
-```json
-{
-  "blastDatabase": "wheat_genome"
-}
-```
-
-**Dataset 2 trackList.json:**
-```json
-{
-  "blastDatabase": "barley_genome"
-}
-```
-
-### Example 5: Adjusting Search Sensitivity
-
-For more sensitive searches (more hits, potentially less specific):
-
-```json
-{
-  "blastDatabase": "S_urartu",
-  "blastEvalue": "1e-3",
-  "blastMaxHits": 50
-}
-```
-
-For more stringent searches (fewer, more specific hits):
-
-```json
-{
-  "blastDatabase": "S_urartu",
-  "blastEvalue": "1e-10",
-  "blastMaxHits": 5
-}
-```
-
----
 
 ---
 
 ## BLAST API
-
-This plugin includes a BLAST job submission API in the `blast/` directory. The API provides RESTful endpoints for:
-
-- Submitting BLAST jobs
-- Checking job status
-- Retrieving job results
-- Managing job history
 
 See [blast/README.md](blast/README.md) for full API documentation including:
 - Endpoint specifications
@@ -626,29 +373,8 @@ The plugin includes a comprehensive test suite:
 # Run all tests (unit tests + syntax checks)
 npm test
 
-# Run only unit tests
-npm run test:simple
-
-# Run PHPUnit tests (requires ext-dom, ext-xml)
-npm run test:phpunit
-
-# Run PHP syntax check only
-npm run test:lint
-
-# Run JavaScript syntax check
-npm run lint:js
-```
-
-The test suite includes:
-- 38+ PHP unit tests covering validation, security, configuration, and job management
-- PHP syntax validation for all PHP files
-- JavaScript syntax validation
-- No BLAST installation required for tests
-- No PHP XML extensions required (when using `npm test`)
-
 For more details, see [tests/README.md](tests/README.md).
 
-### Development Setup
 
 ```bash
 # Clone the repository
@@ -686,34 +412,7 @@ See the plugin in action: https://graingenes.org/jb/?data=/ggds/whe-test
 - **Sample BLAST Database**: http://graingenes.org/ggds/whe-test/S_urartu.zip
 - **Sample Dataset Configuration**: Available at the live example above
 
-### Reporting Issues
-
-If you encounter problems:
-
-1. Check the [Troubleshooting](#troubleshooting) section above
-2. Review web server error logs
-3. Check browser developer console for JavaScript errors
-4. Report issues on GitHub: https://github.com/GrainGenes/GGBlastPlugin/issues
-
-When reporting issues, please include:
-- JBrowse version
-- PHP version
-- BLAST+ version
-- Error messages from logs
-- Browser and OS information
-- Steps to reproduce the problem
-
-### Community
-
-- **GitHub Repository**: https://github.com/GrainGenes/GGBlastPlugin
-- **GrainGenes**: https://graingenes.org
-- **JBrowse Community**: https://jbrowse.org/jbrowse1.html
-
 ---
-
-## License
-
-MIT License - See LICENSE file for details.
 
 ## Contributors
 
