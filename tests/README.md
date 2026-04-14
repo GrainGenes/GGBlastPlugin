@@ -1,6 +1,6 @@
 # GGBlastPlugin Unit Tests
 
-This directory contains PHPUnit tests for the GGBlastPlugin.
+This directory contains unit tests for the GGBlastPlugin.
 
 ## Test Coverage
 
@@ -11,60 +11,27 @@ This directory contains PHPUnit tests for the GGBlastPlugin.
 
 ## Running Tests
 
-### Prerequisites
-
-PHPUnit requires PHP XML extensions. If you get "dom", "xml", or "xmlwriter" extension errors:
-
-```bash
-# For Ubuntu/Debian with your PHP version
-sudo apt install php-xml php-mbstring
-
-# Then install composer dependencies
-composer install --ignore-platform-reqs
-```
-
 ### Run All Tests
-
-```bash
-composer test
-# or
-./vendor/bin/phpunit
-# or using the PHAR file
-php phpunit.phar
-```
-
-### Alternative: Simple Test Runner (No Extensions Required)
-
-If you cannot install the XML extensions, use the simple test runner:
 
 ```bash
 # Using npm (recommended)
 npm test
 
 # Or using composer
-composer test-simple
+composer test
 
 # Or directly with PHP
 php simple-test.php
 ```
 
-### Run Specific Test File
-
-```bash
-./vendor/bin/phpunit tests/BlastValidatorTest.php
-```
-
-### Run with Coverage Report
-
-```bash
-composer test-coverage
-# Opens coverage report in coverage/index.html
-```
-
 ### Run Syntax Check Only
 
 ```bash
+# Check PHP syntax
 composer lint
+
+# Or using npm
+npm run lint
 ```
 
 ## Test Philosophy
@@ -78,6 +45,7 @@ These tests focus on:
 5. **Path handling** - Proper path normalization and sanitization
 
 Tests do NOT require:
+- PHPUnit or PHP XML extensions
 - Actual BLAST installation
 - Database connections
 - File system access (uses mocks where needed)
@@ -88,28 +56,39 @@ Tests do NOT require:
 When adding new functionality:
 
 1. Create test file in `tests/` directory
-2. Extend `PHPUnit\Framework\TestCase`
-3. Follow naming convention: `*Test.php`
-4. Add descriptive test method names starting with `test`
-5. Run tests to ensure they pass
+2. Follow naming convention: `*Test.php`
+3. Add descriptive test method names starting with `test`
+4. Run tests to ensure they pass
 
 ## Continuous Integration
 
-These tests are designed to run in CI/CD pipelines (Travis CI, GitHub Actions, etc.) without special dependencies beyond PHP and composer.
+These tests are designed to run in CI/CD pipelines (Travis CI, GitHub Actions, etc.) without special dependencies beyond PHP.
 
-Example `.travis.yml`:
+Example `.github/workflows/test.yml`:
 
 ```yaml
-language: php
-php:
-  - '7.4'
-  - '8.0'
-  - '8.1'
+name: Tests
 
-install:
-  - composer install
+on: [push, pull_request]
 
-script:
-  - composer test
-  - composer lint
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2']
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+      
+      - name: Run tests
+        run: php simple-test.php
+      
+      - name: Lint PHP files
+        run: find blast -name '*.php' -exec php -l {} \;
 ```

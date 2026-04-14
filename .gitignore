@@ -5,6 +5,8 @@ composer.lock
 # Test outputs
 /coverage/
 .phpunit.result.cache
+phpunit.phar
+phpunit.xml
 
 # Job files (for local testing)
 /jobs/
@@ -19,3 +21,7 @@ composer.lock
 # OS files
 .DS_Store
 Thumbs.db
+
+# Setup script downloads
+/ncbi-blast-*/
+/blastdb/
