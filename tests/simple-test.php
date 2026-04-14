@@ -238,7 +238,7 @@ echo "Running Simple Tests...\n\n";
 $runner = new SimpleTestRunner();
 
 // Include test files and run them
-$testFiles = glob(__DIR__ . '/tests/*Test.php');
+$testFiles = glob(__DIR__ . '/*Test.php');
 
 foreach ($testFiles as $testFile) {
     $className = basename($testFile, '.php');

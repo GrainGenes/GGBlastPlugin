@@ -21,7 +21,7 @@ npm test
 composer test
 
 # Or directly with PHP
-php simple-test.php
+php tests/simple-test.php
 ```
 
 ### Run Syntax Check Only
@@ -87,7 +87,7 @@ jobs:
           php-version: ${{ matrix.php }}
       
       - name: Run tests
-        run: php simple-test.php
+        run: php tests/simple-test.php
       
       - name: Lint PHP files
         run: find blast -name '*.php' -exec php -l {} \;

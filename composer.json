@@ -17,7 +17,7 @@
         }
     },
     "scripts": {
-        "test": "php simple-test.php",
+        "test": "php tests/simple-test.php",
         "lint": "find blast -name '*.php' -exec php -l {} \\;"
     }
 }
