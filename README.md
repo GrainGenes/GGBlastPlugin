@@ -11,7 +11,7 @@ A JBrowse plugin that integrates BLAST search functionality, allowing users to B
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Quick Start Guide](#quick-start-guide)
-- [Configuration - More info](#configuration---more-info)
+- [Configuration Options](#configuration-options)
 - [Testing](#testing)
 - [Getting Help](#getting-help)
 - [Contributors](#contributors)
@@ -99,7 +99,7 @@ The `blastDatabase` value should match the name of a database file in your `dbPa
 
 ---
 
-## Configuration - More info
+## Configuration Options
 
 ### Plugin Configuration (config.json)
 
