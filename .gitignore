@@ -24,4 +24,4 @@ Thumbs.db
 
 # Setup script downloads
 /ncbi-blast-*/
-/blastdb/
+/demo-blastdb/

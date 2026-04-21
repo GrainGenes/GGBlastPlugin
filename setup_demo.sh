@@ -24,10 +24,10 @@ BLAST_DIR="ncbi-blast-2.17.0+"
 # Database download URL
 DB_URL="http://graingenes.org/ggds/whe-test/S_urartu.zip"
 DB_ARCHIVE="S_urartu.zip"
-DB_DIR="blastdb"
+DB_DIR="demo-blastdb"
 
 # Jobs directory
-JOBS_DIR="jobs"
+JOBS_DIR="demo-jobs"
 
 # Step 1: Download and extract BLAST+ executables
 echo -e "${YELLOW}[1/4] Downloading NCBI BLAST+ executables...${NC}"
@@ -78,6 +78,14 @@ else
         echo -e "${RED}  Failed to extract database${NC}"
         exit 1
     }
+    
+    # Check if extraction created a nested blastdb directory and flatten it
+    if [ -d "$DB_DIR/blastdb" ]; then
+        echo -e "${YELLOW}  Flattening nested directory structure...${NC}"
+        mv "$DB_DIR/blastdb"/* "$DB_DIR/" 2>/dev/null || true
+        rmdir "$DB_DIR/blastdb" 2>/dev/null || true
+    fi
+    
     echo -e "${GREEN}  ✓ Extracted to $DB_DIR${NC}"
     
     # Clean up archive
@@ -95,17 +103,56 @@ else
     echo -e "${GREEN}  ✓ Jobs directory already exists${NC}"
 fi
 
-# Step 4: Update config.json
+# Set permissions so web server can write to jobs directory
+chmod 777 "$JOBS_DIR"
+echo -e "${GREEN}  ✓ Set permissions on $JOBS_DIR (777 - web server writable)${NC}"
+
+# Step 4: Verify BLAST installation and update config.json
 echo ""
-echo -e "${YELLOW}[5/5] Updating config.json...${NC}"
+echo -e "${YELLOW}[5/5] Verifying BLAST installation and updating config.json...${NC}"
 CONFIG_FILE="$SCRIPT_DIR/config.json"
 
+# Determine the correct BLAST executable path
+BLAST_EXE_PATH=""
+if [ -f "$SCRIPT_DIR/$BLAST_DIR/bin/blastn" ]; then
+    # Test local BLAST installation
+    if "$SCRIPT_DIR/$BLAST_DIR/bin/blastn" -version &>/dev/null; then
+        BLAST_EXE_PATH="$SCRIPT_DIR/$BLAST_DIR/bin/"
+        echo -e "${GREEN}  ✓ Using local BLAST installation: $BLAST_EXE_PATH${NC}"
+    else
+        echo -e "${YELLOW}  ⚠ Local BLAST found but not working${NC}"
+    fi
+fi
+
+# If local BLAST not found or not working, check system PATH
+if [ -z "$BLAST_EXE_PATH" ]; then
+    if command -v blastn &>/dev/null; then
+        SYSTEM_BLASTN=$(command -v blastn)
+        BLAST_EXE_PATH=$(dirname "$SYSTEM_BLASTN")/
+        echo -e "${GREEN}  ✓ Using system BLAST installation: $BLAST_EXE_PATH${NC}"
+    else
+        echo -e "${RED}  ✗ No working BLAST installation found${NC}"
+        exit 1
+    fi
+fi
+
+# Verify directories exist
+if [ ! -d "$SCRIPT_DIR/$DB_DIR" ]; then
+    echo -e "${RED}  ✗ Database directory not found: $SCRIPT_DIR/$DB_DIR${NC}"
+    exit 1
+fi
+
+if [ ! -d "$SCRIPT_DIR/$JOBS_DIR" ]; then
+    echo -e "${RED}  ✗ Jobs directory not found: $SCRIPT_DIR/$JOBS_DIR${NC}"
+    exit 1
+fi
+
+# Update config.json with verified paths
 if [ -f "$CONFIG_FILE" ]; then
-    # Update the paths in config.json using sed
-    sed -i "s|\"dbPath\":\"[^\"]*\"|\"dbPath\":\"$SCRIPT_DIR/$DB_DIR/\"|g" "$CONFIG_FILE"
-    sed -i "s|\"blastExePath\":\"[^\"]*\"|\"blastExePath\":\"$SCRIPT_DIR/$BLAST_DIR/bin/\"|g" "$CONFIG_FILE"
-    sed -i "s|\"jobsPath\":\"[^\"]*\"|\"jobsPath\":\"$SCRIPT_DIR/$JOBS_DIR/\"|g" "$CONFIG_FILE"
-    echo -e "${GREEN}  ✓ Updated config.json${NC}"
+    sed -i "s|\"dbPath\"[[:space:]]*:[[:space:]]*\"[^\"]*\"|\"dbPath\":\"$SCRIPT_DIR/$DB_DIR/\"|g" "$CONFIG_FILE"
+    sed -i "s|\"blastExePath\"[[:space:]]*:[[:space:]]*\"[^\"]*\"|\"blastExePath\": \"$BLAST_EXE_PATH\"|g" "$CONFIG_FILE"
+    sed -i "s|\"jobsPath\"[[:space:]]*:[[:space:]]*\"[^\"]*\"|\"jobsPath\":\"$SCRIPT_DIR/$JOBS_DIR/\"|g" "$CONFIG_FILE"
+    echo -e "${GREEN}  ✓ Updated config.json with verified paths${NC}"
 else
     echo -e "${RED}  ✗ config.json not found${NC}"
     exit 1
@@ -118,7 +165,7 @@ echo -e "${GREEN}  Setup Complete!${NC}"
 echo -e "${GREEN}=========================================${NC}"
 echo ""
 echo "BLAST+ executables location:"
-echo "  $SCRIPT_DIR/$BLAST_DIR/bin/"
+echo "  $BLAST_EXE_PATH"
 echo ""
 echo "BLAST database location:"
 echo "  $SCRIPT_DIR/$DB_DIR/"
@@ -126,9 +173,8 @@ echo ""
 echo "Jobs directory:"
 echo "  $SCRIPT_DIR/$JOBS_DIR/"
 echo ""
-echo -e "${GREEN}config.json has been updated with the correct paths.${NC}"
-echo -e "${YELLOW}}${NC}"
+echo -e "${GREEN}config.json has been updated with verified paths.${NC}"
 echo ""
 echo "Test BLAST installation:"
-echo -e "  ${YELLOW}$SCRIPT_DIR/$BLAST_DIR/bin/blastn -version${NC}"
+echo -e "  ${YELLOW}${BLAST_EXE_PATH}blastn -version${NC}"
 echo ""

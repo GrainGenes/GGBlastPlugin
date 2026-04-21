@@ -104,17 +104,91 @@ $jobData = [
     'clientIp' => $_SERVER['REMOTE_ADDR']
 ];
 
-// Create job directory
+// Verify jobs directory exists (should be created by setup script)
 if (!file_exists($jobsPath)) {
-    mkdir($jobsPath, 0755, true);
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Jobs directory does not exist: ' . $jobsPath . '. Please create it and set permissions to 777.'
+    ]);
+    exit;
 }
 
+// Verify jobs directory is writable
+if (!is_writable($jobsPath)) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Jobs directory is not writable: ' . $jobsPath . '. Please run: chmod 777 ' . $jobsPath
+    ]);
+    exit;
+}
+
+// Verify BLAST executable exists
+$blastExecutable = $blastExePath . $blastexe;
+if (!file_exists($blastExecutable)) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'BLAST executable not found: ' . $blastExecutable . '. Please verify blastExePath in config.json.'
+    ]);
+    exit;
+}
+
+// Verify BLAST executable is executable
+if (!is_executable($blastExecutable)) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'BLAST executable is not executable: ' . $blastExecutable . '. Please run: chmod +x ' . $blastExecutable
+    ]);
+    exit;
+}
+
+// Test BLAST executable with version command
+$versionCmd = escapeshellarg($blastExecutable) . ' -version 2>&1';
+$versionOutput = shell_exec($versionCmd);
+if ($versionOutput === null || strpos($versionOutput, 'blast') === false) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'BLAST executable failed version test: ' . $blastExecutable . '. Output: ' . substr($versionOutput, 0, 200)
+    ]);
+    exit;
+}
+
+// Verify database exists if specified
+if ($database) {
+    // Prepend dbPath if database is not an absolute path
+    $dbFullPath = (substr($database, 0, 1) === '/') ? $database : $dbPath . $database;
+    
+    // Check for common BLAST database extensions (.nhr, .nin, .nsq for nucleotide, .phr, .pin, .psq for protein)
+    $dbExtensions = ['.nhr', '.phr', '.00.phr', '.00.nhr'];
+    $dbFound = false;
+    foreach ($dbExtensions as $ext) {
+        if (file_exists($dbFullPath . $ext)) {
+            $dbFound = true;
+            break;
+        }
+    }
+    
+    if (!$dbFound) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => 'BLAST database not found: ' . $dbFullPath . '. Please verify the database exists and dbPath in config.json is correct.'
+        ]);
+        exit;
+    }
+}
+
+// Create individual job directory
 $jobDir = $jobsPath . '/' . $jobId;
 if (!mkdir($jobDir, 0755, true)) {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Failed to create job directory'
+        'error' => 'Failed to create job directory. Check that jobs directory has write permissions.'
     ]);
     exit;
 }

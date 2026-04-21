@@ -174,6 +174,35 @@
             }
         }
         
+        // Verify jobs directory exists
+        if (!file_exists($jobsDir)) {
+            echo '<div class="no-jobs">';
+            echo '<strong>Error:</strong> Jobs directory does not exist: ' . htmlspecialchars($jobsDir) . '<br>';
+            echo 'Please create it and set permissions to 777.';
+            echo '</div>';
+            echo '</div></body></html>';
+            exit;
+        }
+        
+        // Verify jobs directory is a directory
+        if (!is_dir($jobsDir)) {
+            echo '<div class="no-jobs">';
+            echo '<strong>Error:</strong> Jobs path is not a directory: ' . htmlspecialchars($jobsDir);
+            echo '</div>';
+            echo '</div></body></html>';
+            exit;
+        }
+        
+        // Verify jobs directory is readable
+        if (!is_readable($jobsDir)) {
+            echo '<div class="no-jobs">';
+            echo '<strong>Error:</strong> Jobs directory is not readable: ' . htmlspecialchars($jobsDir) . '<br>';
+            echo 'Please run: chmod 755 ' . htmlspecialchars($jobsDir);
+            echo '</div>';
+            echo '</div></body></html>';
+            exit;
+        }
+        
         $jobs = [];
         
         if (is_dir($jobsDir)) {

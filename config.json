@@ -1,7 +1,7 @@
 {
-    "dbPath":"/data/ggjbrowse/jb-versions/jb11612/plugins/GGBlastPlugin/blastdb/",
-    "blastExePath": "/data/miniconda/miniconda3/envs/blast/bin/",
-    "jobsPath":"/data/ggjbrowse/jb-versions/jb11612/plugins/GGBlastPlugin/jobs/",
+    "dbPath":"plugins/GGBlastPlugin/demo-blastdb/",
+    "blastExePath": "plugins/GGBlastPlugin/ncbi-blast-2.17.0+/bin/",
+    "jobsPath":"plugins/GGBlastPlugin/demo-jobs/",
     "bpSizeLimit": 20000,
     "blastApp": "/blast/"
 }
