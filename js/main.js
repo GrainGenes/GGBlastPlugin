@@ -124,6 +124,11 @@ function(
                         })
                         .then(response => response.json())
                         .then(result => {
+                            // Check for database error message returned by the server
+                            if (result.missingDbs) {
+                                alert("Missing BLAST database(s): " + result.missingDbs);
+                                return;
+                            }
                             // Open BLAST page with xid parameter
                             window.open(blastAppBase + '?xid=' + result.xid, '_newtab');
                         })
