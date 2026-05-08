@@ -99,14 +99,42 @@ function(
                     });
                 }
                 else {
-                    // Original behavior: store in localStorage and open BLAST page
-                    localStorage.setItem('blastDNA',data.region);
-                
-                    console.log("select BLAST database",JBrowse.config.blastDatabase);
-                    localStorage.setItem('blastDatabaseSelect',JBrowse.config.blastDatabase);
+                    // Use POST /query_transfer if available, otherwise fall back to localStorage.
+                    // Sanity check: POST with no body — route returns {"ok":true} if it exists.
+                    const blastAppBase = JBrowse.ggblast_plugin.blastApp.replace(/\/?$/, '/');
+                    const queryTransferUrl = blastAppBase + 'query_transfer';
 
-                    // send to BLAST page
-                    window.open(JBrowse.ggblast_plugin.blastApp,'_newtab');
+                    fetch(queryTransferUrl, { method: 'POST' })
+                        .then(response => {
+                            if (!response.ok) throw new Error('query_transfer not available');
+                            return response.json();
+                        })
+                        .then(sanity => {
+                            if (!sanity.ok) throw new Error('query_transfer sanity check failed');
+
+                            // Route exists — POST the query and database data
+                            return fetch(queryTransferUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    database: JBrowse.config.blastDatabase,
+                                    query: data.region
+                                })
+                            });
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            // Open BLAST page with xid parameter
+                            window.open(blastAppBase + '?xid=' + result.xid, '_newtab');
+                        })
+                        .catch((error) => {
+                            // Fallback: original localStorage behavior
+                            console.warn("query_transfer unavailable, falling back to localStorage:", error);
+                            localStorage.setItem('blastDNA', data.region);
+                            console.log("select BLAST database", JBrowse.config.blastDatabase);
+                            localStorage.setItem('blastDatabaseSelect', JBrowse.config.blastDatabase);
+                            window.open(JBrowse.ggblast_plugin.blastApp, '_newtab');
+                        });
                 }
             }
         },
