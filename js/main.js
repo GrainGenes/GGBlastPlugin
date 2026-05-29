@@ -130,6 +130,9 @@ function(
                                 return;
                             }
                             // Open BLAST page with xid parameter
+                            if (!JBrowse.config.blastDatabase) {
+                                console.warn("GGBlastPlugin: blastDatabase is missing or undefined");
+                            }
                             blastUrl = blastAppBase + '?xid=' + result.xid;
                             console.log("Opening BLAST:", blastUrl);
                             window.open(blastUrl, '_newtab');
@@ -138,6 +141,9 @@ function(
                             // Fallback: original localStorage behavior
                             console.warn("query_transfer unavailable, falling back to localStorage:", error);
                             localStorage.setItem('blastDNA', data.region);
+                            if (!JBrowse.config.blastDatabase) {
+                                console.warn("GGBlastPlugin: blastDatabase is missing or undefined");
+                            }
                             console.log("select BLAST database", JBrowse.config.blastDatabase);
                             localStorage.setItem('blastDatabaseSelect', JBrowse.config.blastDatabase);
                             blastUrl = JBrowse.ggblast_plugin.blastApp;
