@@ -130,7 +130,9 @@ function(
                                 return;
                             }
                             // Open BLAST page with xid parameter
-                            window.open(blastAppBase + '?xid=' + result.xid, '_newtab');
+                            blastUrl = blastAppBase + '?xid=' + result.xid;
+                            console.log("Opening BLAST:", blastUrl);
+                            window.open(blastUrl, '_newtab');
                         })
                         .catch((error) => {
                             // Fallback: original localStorage behavior
@@ -138,7 +140,9 @@ function(
                             localStorage.setItem('blastDNA', data.region);
                             console.log("select BLAST database", JBrowse.config.blastDatabase);
                             localStorage.setItem('blastDatabaseSelect', JBrowse.config.blastDatabase);
-                            window.open(JBrowse.ggblast_plugin.blastApp, '_newtab');
+                            blastUrl = JBrowse.ggblast_plugin.blastApp;
+                            console.log("Legacy - Opening BLAST:", blastUrl);
+                            window.open(blastUrl, '_newtab');
                         });
                 }
             }
@@ -149,6 +153,7 @@ function(
             let browser = this.browser;
 
             console.log("plugin: GGBlastPlugin");
+            console.log("domain:", window.location.protocol + "//" + window.location.hostname);
 
             browser.ggblast_plugin = {
                 asset: null,
