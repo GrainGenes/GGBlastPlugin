@@ -23,9 +23,10 @@ A JBrowse plugin that integrates BLAST search functionality, allowing users to B
 **BLAST Menu Integration** - The plugin adds a dedicated BLAST menu to the JBrowse navigation bar, providing quick access to BLAST functionality and job history:  
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/26ea0c65-88f9-484f-bb68-a46f88775783" />    
 
-The highlighted-region actions in the `analyze` and `blast` menus use
-menu-specific widget IDs to avoid duplicate Dijit registration. Run
-`npm run test:js` to check menu registration and action behavior.
+Highlighted-region actions are registered only in the `blast` menu.
+The BLAST dropdown is placed immediately before Help, leaving Help last.
+The plugin uses Dojo for DOM queries and button animations; no global jQuery
+or `$` is required. Run `npm run test:js` to check menu and action behavior.
 
 **One-Click Gene/Transcript BLAST** - When viewing genomic features, a BLAST button appears in the feature detail panel, enabling users to submit the gene or transcript sequence for BLAST analysis with a single click:  
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/8d83fd36-9a67-47f3-a7a7-a001906db2ff" />
@@ -110,6 +111,10 @@ The `blastDatabase` value should match the name of a database file in your `dbPa
 This is found in the GGBlastPlugin directory: `plugins/GGBlastPlugin/config.json`
 
 **Configuration Priority:** Settings can be defined in both `config.json` and JBrowse's `trackList.json`. When both are present, `trackList.json` values take precedence over `config.json` values, allowing for dataset-specific overrides.
+
+The browser must be able to GET `plugins/GGBlastPlugin/config.json`. If a
+reverse proxy blocks this URL, allow this exact public configuration path
+rather than disabling protection for the whole JBrowse installation.
 
 #### Configuration Options
 

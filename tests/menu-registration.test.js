@@ -11,7 +11,9 @@ test('registers BLAST actions without creating an Analyze dropdown', async () =>
     const menus = new Map();
     const renderedMenus = [];
     const alerts = [];
-    let milestone;
+    const milestones = [];
+    const menuOrder = ['file', 'view', 'help'];
+    const menuNodes = new Map(menuOrder.map(name => [name, { name }]));
     let implementation;
     let submissions = 0;
     let oversized = false;
@@ -33,10 +35,14 @@ test('registers BLAST actions without creating an Analyze dropdown', async () =>
         menuBar: {},
         afterMilestone(name, callback) {
             assert.equal(name, 'initView');
-            milestone = callback;
+            milestones.push(callback);
         },
         renderGlobalMenu(name) {
             renderedMenus.push(name);
+            this.afterMilestone('initView', () => {
+                menuNodes.set(name, { name });
+                menuOrder.push(name);
+            });
         },
         addGlobalMenuItem(name, item) {
             if (!menus.has(name)) menus.set(name, []);
@@ -46,13 +52,24 @@ test('registers BLAST actions without creating an Analyze dropdown', async () =>
     vm.runInNewContext(source, {
         console,
         window: { location: { protocol: 'https:', hostname: 'example.test' } },
-        fetch: async () => ({ json: async () => ({ blastService: 'php' }) }),
+        fetch: async () => ({ ok: true, json: async () => ({ blastService: 'php' }) }),
         alert(message) { alerts.push(message); },
-        $() { return { insertBefore() {}, html() {} }; },
         dojo: { byId() {}, create() {}, hitch: (context, callback) => callback.bind(context) },
         define(dependencies, factory) {
+            const dom = {
+                place(node, reference, position) {
+                    assert.equal(position, 'before');
+                    menuOrder.splice(menuOrder.indexOf(node.name), 1);
+                    menuOrder.splice(menuOrder.indexOf(reference.name), 0, node.name);
+                }
+            };
+            const query = (selector, root) => {
+                assert.equal(root, browser.menuBar);
+                const name = selector.match(/dropdownbutton_(\w+)/)[1];
+                return menuNodes.has(name) ? [menuNodes.get(name)] : [];
+            };
             implementation = factory((base, methods) => methods, lang, Deferred,
-                {}, {}, Widget, Widget, Widget, {});
+                dom, query, {}, {}, Widget, Widget, Widget, {});
         },
         require(dependencies, callback) {
             callback(lang, function() {});
@@ -65,10 +82,11 @@ test('registers BLAST actions without creating an Analyze dropdown', async () =>
     });
     implementation.constructor.call(plugin, {});
     browser.ggblast_plugin.isOversized = () => oversized;
-    milestone();
+    while (milestones.length) milestones.shift()();
     await new Promise(resolve => setImmediate(resolve));
 
     assert.deepEqual(renderedMenus, ['blast']);
+    assert.deepEqual(menuOrder, ['file', 'view', 'blast', 'help']);
     assert.deepEqual(menus.get('blast').map(item => item.id),
         ['menubar_blast_submit_demo', 'menubar_blast_jobs']);
 

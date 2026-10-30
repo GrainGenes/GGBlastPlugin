@@ -4,6 +4,8 @@ define([
     'dojo/Deferred',
     'dojo/dom-construct',
     'dojo/query',
+    'dojo/_base/fx',
+    'dojo/fx',
     'dijit/Menu',
     'dijit/MenuItem',
     'dijit/form/Button',
@@ -15,6 +17,8 @@ function(
     Deferred,
     domConstruct,
     query,
+    baseFx,
+    fx,
     Menu,
     MenuItem,
     Button,
@@ -173,8 +177,8 @@ function(
     
                 // check if bpSize > bpSizeLimit, if bpSizeLimit is defined
                 isOversized(bpSize) {
-                    console.log('checking size',bpSize,'/',bpSizeLimit);
                     let bpSizeLimit = JBrowse.ggblast_plugin.bpSizeLimit;
+                    console.log('checking size',bpSize,'/',bpSizeLimit);
     
                     if (bpSizeLimit && bpSize > bpSizeLimit) {
                         // oversize message
@@ -191,7 +195,12 @@ function(
 
             // Load config.json and merge settings, then allow trackList.json to override
             fetch('plugins/GGBlastPlugin/config.json')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('GGBlastPlugin config.json: HTTP ' + response.status);
+                    }
+                    return response.json();
+                })
                 .then(config => {
                     // Merge all config.json properties into ggblast_plugin
                     Object.keys(config).forEach(key => {
@@ -249,7 +258,9 @@ function(
 					// handle highlight off 
                     clearHighlight: function() {
                         if( this._highlight ) {
-                            $("[widgetid='jblast-toolbtn']").hide();
+                            const plugin = this.ggblast_plugin;
+                            if (plugin.highlightAnimation) plugin.highlightAnimation.stop();
+                            plugin.blastButton.domNode.style.display = 'none';
                             delete this._highlight;
                             this.publish( '/jbrowse/v1/n/globalHighlightChanged', [] );
                         }
@@ -278,6 +289,11 @@ function(
             browser.afterMilestone( 'initView', function() {    
                 let menuName = "blast"; 
                 browser.renderGlobalMenu( menuName,'AnalyzeTools', browser.menuBar );
+                browser.afterMilestone('initView', function() {
+                    const blast = query('[widgetid="dropdownbutton_blast"]', browser.menuBar)[0];
+                    const help = query('[widgetid="dropdownbutton_help"]', browser.menuBar)[0];
+                    if (blast && help) domConstruct.place(blast, help, 'before');
+                });
                 
                 initMenu(menuName);
                 
@@ -333,8 +349,8 @@ function(
     
                 // get parameter list
                 let params = {}; 
-                $( ".s-params .s-data" ).each(function( i ) {
-                    params[$(this).attr('name')] = $( this ).val();
+                query(".s-params .s-data").forEach(function(node) {
+                    params[node.getAttribute('name')] = node.value;
                 });            
                 
                 // get the highlighted region data
@@ -402,14 +418,22 @@ function(
             // add hilight menu to node
             if (typeof JBrowse.jblastHiliteMenu !== 'undefined') {
                 JBrowse.jblastHiliteMenu.bindDomNode(node);
-                $("[widgetid='jblast-toolbtn']").show();
-
-                // flash the BLAST button
-                $("[widgetid='jblast-toolbtn']")
-                .fadeIn(100).fadeOut(100).fadeIn(100)
-                .fadeOut(100).fadeIn(100)
-                .fadeOut(100).fadeIn(100)
-                .fadeOut(100).fadeIn(100);            
+                const plugin = JBrowse.ggblast_plugin;
+                const buttonNode = plugin.blastButton.domNode;
+                if (plugin.highlightAnimation) plugin.highlightAnimation.stop();
+                buttonNode.style.display = '';
+                plugin.highlightAnimation = fx.chain([
+                    baseFx.fadeIn({ node: buttonNode, duration: 100 }),
+                    baseFx.fadeOut({ node: buttonNode, duration: 100 }),
+                    baseFx.fadeIn({ node: buttonNode, duration: 100 }),
+                    baseFx.fadeOut({ node: buttonNode, duration: 100 }),
+                    baseFx.fadeIn({ node: buttonNode, duration: 100 }),
+                    baseFx.fadeOut({ node: buttonNode, duration: 100 }),
+                    baseFx.fadeIn({ node: buttonNode, duration: 100 }),
+                    baseFx.fadeOut({ node: buttonNode, duration: 100 }),
+                    baseFx.fadeIn({ node: buttonNode, duration: 100 })
+                ]);
+                plugin.highlightAnimation.play();
 
             }
         },
@@ -422,10 +446,9 @@ function(
                 iconClass: 'dijitIconFunction',
                 label: 'BLAST',
                 title: 'BLAST this feature',
-                disabled: false, //$('.save-generated-files'),
+                disabled: false,
                 onClick: function() {
-                    let btn = $(".dijitButton[widgetid='"+this.id+"']").parent().parent();
-                    let rdata = $('textarea.fasta',btn).text();
+                    let rdata = query('textarea.fasta', toolbar.domNode.parentNode)[0].value;
                     let data = {
                         bpSize: bpSize,
                         region: rdata,
