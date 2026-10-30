@@ -168,7 +168,6 @@ function(
                 bpSizeLimit: 20000, // Default value, can be overridden by config.json or trackList.json
                 blastService: null, // Can be set in config.json or trackList.json
                 blastApp: 'https://graingenes.org/blast/', // Default URL, can be overridden by config.json or trackList.json
-                analyzeMenus: {},
                 sendTo: thisB.sendTo,
                 processInput: processInput,
     
@@ -275,26 +274,12 @@ function(
             // setup right click menu for highlight region - for arbitrary region selection
             thisB.rightClickMenuInit();
             
-            // setup content of submit dialog box
-            function dialogContent(container) {
-            }
-
-            // BLAST menu structure
-            browser.ggblast_plugin.analyzeMenus.demo = {
-                title: 'Submit to ggBlast',
-                module: 'demo',
-                init:initMenu,
-                contents:dialogContent,
-                process:processInput
-            };
-            
             // insert dropdown menu
             browser.afterMilestone( 'initView', function() {    
                 let menuName = "blast"; 
                 browser.renderGlobalMenu( menuName,'AnalyzeTools', browser.menuBar );
                 
-                thisB.initAnalyzeMenu();
-                initMenu(menuName);  // Add original BLAST highlighted region menu item
+                initMenu(menuName);
                 
                 // Add Jobs menu item only after config loads and blastService is configured/enabled
                 configLoaded.then(function() {
@@ -312,8 +297,6 @@ function(
                 });
             });
 
-            // initMenu sets up Analyze Menu item(s)
-            
             function initMenu(menuName) {
                 browser.addGlobalMenuItem( menuName, new MenuItem({
                     id: 'menubar_' + menuName + '_submit_demo',
@@ -378,34 +361,6 @@ function(
                 }));             
             }
 
-        },
-        initAnalyzeMenu() {
-            let thisB = this;
-            let browser = this.browser;
-            this.plugin = this;
-            let menuName = "analyze"; 
-            require([
-                'dojo/dom-construct',
-                'dijit/MenuItem',
-                'dijit/Dialog',
-                'dijit/form/Button'
-            ], function(dom,dijitMenuItem,Dialog,dButton,queryDialog){
-                
-                let analyzeMenus = browser.ggblast_plugin.analyzeMenus;
-    
-                for(let i in analyzeMenus) {
-                    if (analyzeMenus[i].queryDialog) 
-                        analyzeMenus[i].init(menuName,analyzeMenus[i].queryDialog)
-                    else
-                        analyzeMenus[i].init(menuName,queryDialog);
-                }
-                browser.renderGlobalMenu( menuName,'AnalyzeTools', browser.menuBar );
-                
-                // reorder the menubar
-                $("[widgetid*='dropdownbutton_analyze']").insertBefore("[widgetid*='dropdownbutton_help']");
-                $("[widgetid*='dropdownbutton_analyze'] span.dijitButtonNode").html(" BLAST");
-    
-            });
         },
         /*
          *
