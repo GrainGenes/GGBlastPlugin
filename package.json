@@ -4,6 +4,7 @@
   "description": "JBrowse BLAST plugin with PHP API",
   "scripts": {
     "test": "php tests/simple-test.php && find blast -name '*.php' -exec php -l {} \\;",
+    "test:js": "node --test tests/*.test.js",
     "lint": "find blast -name '*.php' -exec php -l {} \\;",
     "lint:js": "find js -name '*.js' -exec node --check {} \\;"
   },

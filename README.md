@@ -23,6 +23,10 @@ A JBrowse plugin that integrates BLAST search functionality, allowing users to B
 **BLAST Menu Integration** - The plugin adds a dedicated BLAST menu to the JBrowse navigation bar, providing quick access to BLAST functionality and job history:  
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/26ea0c65-88f9-484f-bb68-a46f88775783" />    
 
+The highlighted-region actions in the `analyze` and `blast` menus use
+menu-specific widget IDs to avoid duplicate Dijit registration. Run
+`npm run test:js` to check menu registration and action behavior.
+
 **One-Click Gene/Transcript BLAST** - When viewing genomic features, a BLAST button appears in the feature detail panel, enabling users to submit the gene or transcript sequence for BLAST analysis with a single click:  
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/8d83fd36-9a67-47f3-a7a7-a001906db2ff" />
 
@@ -171,4 +175,3 @@ Developed and maintained by the GrainGenes team.
 
 **Version**: 1.0.0  
 **Last Updated**: 2026
-

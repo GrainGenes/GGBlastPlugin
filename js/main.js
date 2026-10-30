@@ -186,6 +186,10 @@ function(
                 }
             };
 
+            // Deferred to signal when config.json (plus any trackList.json overrides) is loaded
+            let configLoaded = new Deferred();
+            browser.ggblast_plugin._configLoaded = configLoaded;
+
             // Load config.json and merge settings, then allow trackList.json to override
             fetch('plugins/GGBlastPlugin/config.json')
                 .then(response => response.json())
@@ -223,6 +227,9 @@ function(
                     if (browser.config.blastApp !== undefined) {
                         browser.ggblast_plugin.blastApp = browser.config.blastApp;
                     }
+                })
+                .finally(() => {
+                    configLoaded.resolve();
                 });
 
             // override BlockBased - for right click highlighted region
@@ -289,24 +296,27 @@ function(
                 thisB.initAnalyzeMenu();
                 initMenu(menuName);  // Add original BLAST highlighted region menu item
                 
-                // Add Jobs menu item only if blastService is enabled
-                if (browser.ggblast_plugin.blastService !== false) {
-                    browser.addGlobalMenuItem( menuName, new MenuItem({
-                        id: 'menubar_blast_jobs',
-                        label: 'Jobs',
-                        iconClass: 'dijitIconFolderOpen',
-                        onClick: function() {
-                            window.open('plugins/GGBlastPlugin/blast/jobs.php', '_blank');
-                        }
-                    }));
-                }
+                // Add Jobs menu item only after config loads and blastService is configured/enabled
+                configLoaded.then(function() {
+                    let service = browser.ggblast_plugin.blastService;
+                    if (service === 'php' || service === true) {
+                        browser.addGlobalMenuItem( menuName, new MenuItem({
+                            id: 'menubar_blast_jobs',
+                            label: 'Jobs',
+                            iconClass: 'dijitIconFolderOpen',
+                            onClick: function() {
+                                window.open('plugins/GGBlastPlugin/blast/jobs.php', '_blank');
+                            }
+                        }));
+                    }
+                });
             });
 
             // initMenu sets up Analyze Menu item(s)
             
             function initMenu(menuName) {
                 browser.addGlobalMenuItem( menuName, new MenuItem({
-                    id: 'menubar_submit_demo',
+                    id: 'menubar_' + menuName + '_submit_demo',
                     label: 'BLAST highlighted region',
                     iconClass: 'dijitIconFilter',
                     onClick: function() {
